@@ -1,6 +1,7 @@
 package com.akadasoftware.danceworksonline;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -22,11 +23,7 @@ import com.akadasoftware.danceworksonline.Classes.Student;
 import com.akadasoftware.danceworksonline.Classes.StudentAttendance;
 import com.akadasoftware.danceworksonline.Classes.User;
 
-import org.ksoap2.SoapEnvelope;
-import org.ksoap2.serialization.PropertyInfo;
-import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapSerializationEnvelope;
-import org.ksoap2.transport.HttpTransportSE;
 
 import java.util.ArrayList;
 
@@ -201,17 +198,26 @@ public class StudentAttendanceFragment extends ListFragment {
         getStudentAttendance.execute();
     }
 
+    /**
+     * Get's the Student's attendance record after the the session is choosen.
+     */
     public class getStudentAttendanceAsync extends
             AsyncTask<Data, Void, ArrayList<StudentAttendance>> {
+        ProgressDialog progress;
+
+        protected void onPreExecute() {
+            progress = ProgressDialog.show(activity, "Getting attendance", "Loading...", true);
+        }
 
         @Override
         protected ArrayList<StudentAttendance> doInBackground(Data... data) {
 
-            return getAttendance();
+            //return getAttendance();
+            return oGlobal.getAttendance(_appPrefs, oStudent.StuID);
         }
 
         protected void onPostExecute(ArrayList<StudentAttendance> result) {
-
+            progress.dismiss();
             studentAttenanceArray = result;
             attendanceAdapter = new StudentAttendanceAdapter(activity,
                     R.layout.item_student_attendance, studentAttenanceArray);
@@ -220,90 +226,6 @@ public class StudentAttendanceFragment extends ListFragment {
 
 
         }
-    }
-
-    public ArrayList<StudentAttendance> getAttendance() {
-        String MethodName = "getStudentAttendance";
-        SoapObject response = InvokeMethod(Data.URL, MethodName);
-        return RetrieveFromSoap(response);
-
-    }
-
-    public SoapObject InvokeMethod(String URL, String MethodName) {
-
-        SoapObject request = GetSoapObject(MethodName);
-
-        PropertyInfo piUserID = new PropertyInfo();
-        piUserID.setName("UserID");
-        piUserID.setValue(oUser.UserID);
-        request.addProperty(piUserID);
-
-        PropertyInfo piUserGUID = new PropertyInfo();
-        piUserGUID.setType("STRING_CLASS");
-        piUserGUID.setName("UserGUID");
-        piUserGUID.setValue(oUser.UserGUID);
-        request.addProperty(piUserGUID);
-
-        PropertyInfo piStuID = new PropertyInfo();
-        piStuID.setName("StuID");
-        piStuID.setValue(oStudent.StuID);
-        request.addProperty(piStuID);
-
-        PropertyInfo piSessionID = new PropertyInfo();
-        piSessionID.setName("SessionID");
-        piSessionID.setValue(SessionID);
-        request.addProperty(piSessionID);
-
-        SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(
-                SoapEnvelope.VER11);
-        envelope.dotNet = true;
-        envelope.setOutputSoapObject(request);
-        return MakeCall(URL, envelope, Data.NAMESPACE, MethodName);
-    }
-
-    public static SoapObject GetSoapObject(String MethodName) {
-        return new SoapObject(Data.NAMESPACE, MethodName);
-    }
-
-    public static SoapObject MakeCall(String URL,
-                                      SoapSerializationEnvelope envelope, String NAMESPACE,
-                                      String METHOD_NAME) {
-        HttpTransportSE HttpTransport = new HttpTransportSE(URL);
-        try {
-            envelope.addMapping(NAMESPACE, "StudentAttendance",
-                    new StudentAttendance().getClass());
-            HttpTransport.call(METHOD_NAME, envelope);
-            envelopeOutput = envelope;
-            SoapObject response = (SoapObject) envelope.getResponse();
-
-            return response;
-        } catch (Exception e) {
-            e.printStackTrace();
-
-        }
-        return null;
-    }
-
-    public static ArrayList<StudentAttendance> RetrieveFromSoap(SoapObject soap) {
-
-        ArrayList<StudentAttendance> stuAttendance = new ArrayList<StudentAttendance>();
-        for (int i = 0; i < soap.getPropertyCount(); i++) {
-
-            SoapObject attendanceItem = (SoapObject) soap.getProperty(i);
-
-            StudentAttendance attendance = new StudentAttendance();
-            for (int j = 0; j < attendanceItem.getPropertyCount(); j++) {
-                attendance.setProperty(j, attendanceItem.getProperty(j)
-                        .toString());
-                if (attendanceItem.getProperty(j).equals("anyType{}")) {
-                    attendanceItem.setProperty(j, "");
-                }
-
-            }
-            stuAttendance.add(i, attendance);
-        }
-
-        return stuAttendance;
     }
 
 }

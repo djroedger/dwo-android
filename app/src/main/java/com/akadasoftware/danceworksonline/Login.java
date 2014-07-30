@@ -297,7 +297,7 @@ public class Login extends ActionBarActivity {
         }
 
         /**
-         * Gets list of classes, runs in onpost of school to ensure we have a session id
+         * Gets list of Classes, runs in onpost of school to ensure we have a session id
          */
         public class getStudentClassesAsync extends
                 AsyncTask<Globals.Data, Void, ArrayList<SchoolClasses>> {

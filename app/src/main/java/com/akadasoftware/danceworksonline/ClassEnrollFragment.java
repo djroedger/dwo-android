@@ -1,21 +1,15 @@
 package com.akadasoftware.danceworksonline;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.ListView;
-import android.widget.Spinner;
 
 import com.akadasoftware.danceworksonline.Adapters.SchoolClassAdapter;
-import com.akadasoftware.danceworksonline.Adapters.SessionAdapter;
 import com.akadasoftware.danceworksonline.Classes.AppPreferences;
 import com.akadasoftware.danceworksonline.Classes.Globals;
 import com.akadasoftware.danceworksonline.Classes.School;
@@ -33,10 +27,9 @@ import org.ksoap2.transport.HttpTransportSE;
 import java.util.ArrayList;
 
 /**
- * Created by Kyle on 5/14/2014.
+ * Created by Kyle on 7/21/2014.
  */
-public class StudentEnrollFragment extends ListFragment {
-
+public class ClassEnrollFragment extends ListFragment {
     private AppPreferences _appPrefs;
     String METHOD_NAME = "";
     String SOAP_ACTION = "";
@@ -49,47 +42,20 @@ public class StudentEnrollFragment extends ListFragment {
     int SessionID, position, positionOfClass;
     Globals oGlobals;
 
-    Button btnDone;
-
-
     ArrayList<SchoolClasses> schoolClassesArray = new ArrayList<SchoolClasses>();
-
+    ArrayList<Student> studentsArray = new ArrayList<Student>();
     ArrayList<String> conflictsArray = new ArrayList<String>();
 
-    ArrayList<Student> studentsArray = new ArrayList<Student>();
-    ArrayList<Session> sessionArrayList = new ArrayList<Session>();
-    SessionAdapter sessionAdapter;
-    ViewGroup objContainer;
-    View view;
 
-    Spinner sessionStudentEnrollSpinner;
     private SchoolClassAdapter classAdapter;
-
-    private onEnrollDialog dialogListener;
-    private OnStudentEnrollListener enrollListener;
-
-
-    public interface onEnrollDialog {
-
-        public void onEnrollDialog(SchoolClasses objSchoolClass, Student oStudent,
-                                   ArrayList<String> conflictsArray, int positionOfClass, SchoolClassAdapter classAdapter);
-    }
-
-    public interface OnStudentEnrollListener {
-
-        public void onStudentEnrollInteraction(int classPosition, int newClRID);
-    }
-
-    public StudentEnrollFragment() {
-    }
 
 
     /**
      * @param position of student in arraylist
      * @return Returns ClRID, if > 0 then it was a success, otherwise failure
      */
-    public static StudentEnrollFragment newInstance(int position) {
-        StudentEnrollFragment fragment = new StudentEnrollFragment();
+    public static ClassEnrollFragment newInstance(int position) {
+        ClassEnrollFragment fragment = new ClassEnrollFragment();
         Bundle args = new Bundle();
         args.putInt("Position", position);
         fragment.setArguments(args);
@@ -109,6 +75,9 @@ public class StudentEnrollFragment extends ListFragment {
         oStudent = studentsArray.get(position);
         oUser = _appPrefs.getUser();
         oGlobals = new Globals();
+
+        getStudentClassesAsync getClass = new getStudentClassesAsync();
+        getClass.execute();
     }
 
     @Override
@@ -116,55 +85,10 @@ public class StudentEnrollFragment extends ListFragment {
                              Bundle savedInstanceState) {
         super.onCreateView(inflater, container,
                 savedInstanceState);
-        view = inflater.inflate(R.layout.fragment_studentenroll, container, false);
-        objContainer = container;
+        View view = inflater.inflate(R.layout.fragment_class_enroll, container, false);
 
-        btnDone = (Button) view.findViewById(R.id.btnDone);
-        sessionStudentEnrollSpinner = (Spinner) view.findViewById(R.id.sessionStudentEnrollSpinner);
-
-        btnDone.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent openStudentPage = new Intent("com.akadasoftware.danceworksonline.StudentInformation");
-                startActivity(openStudentPage);
-            }
-        });
         return view;
     }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        getSessionsAsync getSessions = new getSessionsAsync();
-        getSessions.execute();
-
-    }
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        try {
-            enrollListener = (OnStudentEnrollListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement onStudentEnrollInteraction");
-        }
-
-        try {
-            dialogListener = (onEnrollDialog) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement onEnrollDialog");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        enrollListener = null;
-    }
-
 
     /**
      * When one of the Classes is chosen, a dialog will pop up with the option to enroll or waitlist
@@ -182,71 +106,6 @@ public class StudentEnrollFragment extends ListFragment {
         checkConflicts.execute();
     }
 
-    //Asycn task to get the ChgDesc field to be used to populate the spinner
-    public class getSessionsAsync extends
-            AsyncTask<Globals.Data, Void, ArrayList<Session>> {
-        ProgressDialog progress;
-
-        protected void onPreExecute() {
-            progress = ProgressDialog.show(getActivity(), "Gathering Energy", "Loading...", true);
-        }
-
-        @Override
-        protected ArrayList<Session> doInBackground(Globals.Data... data) {
-
-            /**
-             * SoapObject session = oGlobals.getSoapRequest(Globals.Data.NAMESPACE, "getSessions");
-             * session = oGlobals.setSessionPropertyInfo(session, oStudent.SchID, "getSessions", oUser);
-             * return oGlobals.RetrieveSessionsFromSoap(session);
-             */
-
-            return oGlobals.getSessions(oSchool.SchID, oUser.UserID, oUser.UserGUID);
-
-        }
-
-        protected void onPostExecute(ArrayList<Session> result) {
-            progress.dismiss();
-            sessionArrayList = result;
-            addItemsOnSpinner(sessionArrayList);
-
-        }
-    }
-
-
-    //Adds all items from the Session field to the spinner
-    public void addItemsOnSpinner(ArrayList<Session> sess) {
-
-        sessionAdapter = new SessionAdapter(activity,
-                R.layout.fragment_studentenroll, sess);
-
-        sessionStudentEnrollSpinner.setAdapter(sessionAdapter);
-        oGlobals.setCurrentSession(sessionStudentEnrollSpinner, oSchool);
-        sessionStudentEnrollSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                setSelectedSession(sessionStudentEnrollSpinner);
-
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
-            }
-        });
-    }
-
-    //Handles if the selected field for the spinner
-    public void setSelectedSession(Spinner sessionSpinner) {
-
-        int selected = sessionSpinner.getSelectedItemPosition();
-        session = (Session) sessionSpinner.getItemAtPosition(selected);
-        SessionID = session.SessionID;
-
-        getStudentClassesAsync getStudentClass = new getStudentClassesAsync();
-        getStudentClass.execute();
-
-    }
-
 
     /**
      * Gets list of Classes, runs in onpost of session to ensure we have a session id
@@ -258,7 +117,7 @@ public class StudentEnrollFragment extends ListFragment {
         protected ArrayList<SchoolClasses> doInBackground(Globals.Data... data) {
 
 
-            return oGlobals.getClasses(_appPrefs, SessionID, oStudent.StuID);
+            return oGlobals.getClasses(_appPrefs, oSchool.SessionID, oStudent.StuID);
         }
 
         protected void onPostExecute(ArrayList<SchoolClasses> result) {
@@ -267,12 +126,10 @@ public class StudentEnrollFragment extends ListFragment {
 
             classAdapter = new SchoolClassAdapter(activity,
                     R.layout.item_studentclass, schoolClassesArray);
-            updateListAdapter();
-
-
+            setListAdapter(classAdapter);
+            classAdapter.notifyDataSetChanged();
         }
     }
-
 
     /**
      * Checking if class that is to be enrolled conflicks with any other previously registered
@@ -288,7 +145,7 @@ public class StudentEnrollFragment extends ListFragment {
         protected void onPostExecute(ArrayList<String> result) {
 
             conflictsArray = result;
-            dialogListener.onEnrollDialog(oSchoolClass, oStudent, conflictsArray, positionOfClass, classAdapter);
+            //dialogListener.onEnrollDialog(oSchoolClass, oStudent, conflictsArray, positionOfClass, classAdapter);
 
         }
     }
@@ -442,9 +299,4 @@ public class StudentEnrollFragment extends ListFragment {
     }
 
 
-    public void updateListAdapter() {
-        setListAdapter(classAdapter);
-
-        classAdapter.setNotifyOnChange(true);
-    }
 }

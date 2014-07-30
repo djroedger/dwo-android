@@ -10,10 +10,10 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.widget.TimePicker;
 
-import com.akadasoftware.danceworksonline.Dialogs.EditEndTimeDialog;
-import com.akadasoftware.danceworksonline.Dialogs.EditStartTimeDialog;
 import com.akadasoftware.danceworksonline.Classes.AppPreferences;
 import com.akadasoftware.danceworksonline.Classes.Globals;
+import com.akadasoftware.danceworksonline.Dialogs.EditEndTimeDialog;
+import com.akadasoftware.danceworksonline.Dialogs.EditStartTimeDialog;
 
 import java.util.Locale;
 
@@ -25,13 +25,15 @@ public class ClassInformation extends ActionBarActivity implements ActionBar.Tab
         ClassInformationFragment.onEditEndTimeDialog,
         ClassRosterFragment.OnRosterInteractionListener,
         EditEndTimeDialog.EditStopTimeDialogListener,
-        EditStartTimeDialog.EditTimeDialogListener {
+        EditStartTimeDialog.EditTimeDialogListener,
+        ClassWaitListFragment.OnWaitListInteractionListener {
 
     ViewPager mViewPager;
     private AppPreferences _appPrefs;
     ClassPagerAdapter mSectionsPagerAdapter;
     String strSession;
     Globals oGlobals;
+
     /**
      * Uses the saved position from the onAccountSelected method in Home.java to fill an empty
      * account with the matching position in the account list array.
@@ -196,6 +198,11 @@ public class ClassInformation extends ActionBarActivity implements ActionBar.Tab
 
     }
 
+    @Override
+    public void onWaitListInteraction(String id) {
+
+    }
+
     /**
      * A {@link android.support.v4.app.FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.
@@ -217,13 +224,18 @@ public class ClassInformation extends ActionBarActivity implements ActionBar.Tab
             int listPosition = _appPrefs.getClassListPosition();
 
 
-
             switch (position) {
                 case 0:
                     newFragment = ClassInformationFragment.newInstance(listPosition, strSession);
                     break;
                 case 1:
                     newFragment = ClassRosterFragment.newInstance(listPosition);
+                    break;
+                case 2:
+                    newFragment = ClassWaitListFragment.newInstance(listPosition);
+                    break;
+                case 4:
+                    newFragment = ClassEnrollFragment.newInstance(listPosition);
                     break;
                 default:
                     newFragment = StudentInformationFragment.newInstance(listPosition);

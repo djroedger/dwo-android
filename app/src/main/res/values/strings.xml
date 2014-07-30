@@ -37,6 +37,7 @@
     <string name="title_student_classes">Classes</string>
     <string name="title_student_waitlist">Waitlist</string>
     <string name="title_student_Attendance">Attendance</string>
+    <string name="title_student_record_Attendance">Record Attendance</string>
     <string name="title_student_enroll">Enroll</string>
 
     <string name="title_activity_splash">Splash</string>
@@ -114,6 +115,19 @@
         <item>Active and Inactive</item>
         <item>Prospects</item>
         <item>All Students</item>
+    </string-array>
+    <string-array name="AttendanceStatus">
+        <item>Present</item>
+        <item>Absent</item>
+        <item>Excused</item>
+        <item>Make Up</item>
+        <item>Late</item>
+        <item>Illness</item>
+        <item>Out of Town</item>
+        <item>Cancelled</item>
+        <item>Watching</item>
+        <item>Non Compliant</item>
+        <item>Holiday</item>
     </string-array>
 
     <string name="title_activity_enroll">Enroll</string>

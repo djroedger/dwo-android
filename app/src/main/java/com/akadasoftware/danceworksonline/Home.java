@@ -15,11 +15,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.akadasoftware.danceworksonline.Dialogs.FilterDialog;
 import com.akadasoftware.danceworksonline.Classes.Account;
 import com.akadasoftware.danceworksonline.Classes.AppPreferences;
 import com.akadasoftware.danceworksonline.Classes.Globals;
 import com.akadasoftware.danceworksonline.Classes.Student;
+import com.akadasoftware.danceworksonline.Dialogs.FilterDialog;
 
 import java.util.ArrayList;
 
@@ -207,7 +207,7 @@ public class Home extends ActionBarActivity
     public void onClassSelected(int position, String sessionName) {
         /**
          *  Starting a new activity (ClassInformation) which is handled by intents in the manifest.
-         *  The position is saved to fill a matching classes in the listarray.
+         *  The position is saved to fill a matching Classes in the listarray.
          */
         _appPrefs.saveClassListPosition(position);
 

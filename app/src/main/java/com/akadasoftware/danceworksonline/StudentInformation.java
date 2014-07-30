@@ -16,6 +16,9 @@ import com.akadasoftware.danceworksonline.Adapters.SchoolClassAdapter;
 import com.akadasoftware.danceworksonline.Classes.AppPreferences;
 import com.akadasoftware.danceworksonline.Classes.SchoolClasses;
 import com.akadasoftware.danceworksonline.Classes.Student;
+import com.akadasoftware.danceworksonline.Classes.StudentAttendance;
+import com.akadasoftware.danceworksonline.Dialogs.AttendanceDialog;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -28,7 +31,10 @@ public class StudentInformation extends ActionBarActivity implements ActionBar.T
         StudentWaitListFragment.OnWaitListListener,
         StudentAttendanceFragment.OnAttendanceInteractionListener,
         StudentEnrollFragment.OnStudentEnrollListener,
-        StudentEnrollFragment.onEnrollDialog {
+        StudentEnrollFragment.onEnrollDialog,
+        RecordAttendanceFragment.OnRecordAttendanceInteractionListener,
+        RecordAttendanceFragment.OnAttendanceDialogInteractionListener,
+        AttendanceDialog.AttendanceDialogListener {
 
     ViewPager mViewPager;
     private AppPreferences _appPrefs;
@@ -132,6 +138,11 @@ public class StudentInformation extends ActionBarActivity implements ActionBar.T
         return id == R.id.action_settings || super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onAttendanceDialogPositiveClick(String mTitle) {
+
+    }
+
 
     /**
      * A {@link android.support.v4.app.FragmentPagerAdapter} that returns a fragment corresponding to
@@ -167,6 +178,9 @@ public class StudentInformation extends ActionBarActivity implements ActionBar.T
                 case 3:
                     newFragment = StudentAttendanceFragment.newInstance(listPosition);
                     break;
+                case 4:
+                    newFragment = RecordAttendanceFragment.newInstance(listPosition);
+                    break;
                 default:
                     newFragment = StudentInformationFragment.newInstance(listPosition);
                     break;
@@ -193,6 +207,8 @@ public class StudentInformation extends ActionBarActivity implements ActionBar.T
                     return getString(R.string.title_student_waitlist).toUpperCase(l);
                 case 3:
                     return getString(R.string.title_student_Attendance).toUpperCase(l);
+                case 4:
+                    return getString(R.string.title_student_record_Attendance).toUpperCase(l);
                 /**
                  * case 4:
                  return getString(R.string.title_student_enroll).toUpperCase(l);
@@ -234,8 +250,31 @@ public class StudentInformation extends ActionBarActivity implements ActionBar.T
 
         /**
          * Don't really need this here. It is handled ona button click that starts a whole new activity
-         * and thats where the interface really needs to be implemented...
+         * and that's where the interface really needs to be implemented...
          */
     }
 
+    @Override
+    public void onRecordFragmentInteraction() {
+
+    }
+
+    @Override
+    public void onAttendanceDialogInteraction(StudentAttendance oClassChoosen) {
+        FragmentManager fm = getSupportFragmentManager();
+        AttendanceDialog attendDialog = new AttendanceDialog();
+
+        StudentAttendance[] arrayStudentAttendance = new StudentAttendance[1];
+        arrayStudentAttendance[0] = oClassChoosen;
+
+        Gson gson = new Gson();
+        String strJsonAttendance = gson.toJson(arrayStudentAttendance);
+
+        getIntent().putExtra("StudentAttendance", strJsonAttendance);
+
+        //Just the name of the dialog. Has no effect on it.
+        attendDialog.show(fm, "");
+
+
+    }
 }

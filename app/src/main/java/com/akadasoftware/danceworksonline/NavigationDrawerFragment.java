@@ -102,7 +102,7 @@ public class NavigationDrawerFragment extends Fragment {
 
     /**
      * Inflates the Drawer layout that contains a listadapter with the accounts, students and
-     * classes option.
+     * Classes option.
      */
 
     @Override

@@ -11,10 +11,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 
-import com.akadasoftware.danceworksonline.R;
 import com.akadasoftware.danceworksonline.Classes.AppPreferences;
 import com.akadasoftware.danceworksonline.Classes.SchoolClasses;
 import com.akadasoftware.danceworksonline.Classes.Student;
+import com.akadasoftware.danceworksonline.R;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
@@ -56,7 +56,7 @@ public class EnrollDialog extends DialogFragment {
         } catch (ClassCastException e) {
             // The activity doesn't implement the interface, throw exception
             throw new ClassCastException(activity.toString()
-                    + " must implement FilterDialogListener");
+                    + " must implement EnrollDialogListener");
         }
     }
 
@@ -128,7 +128,7 @@ public class EnrollDialog extends DialogFragment {
         if (arrayCount == 1)
             conflitMessage = "The following class conflict with the class below";
         else
-            conflitMessage = "The following classes conflict with the class below";
+            conflitMessage = "The following Classes conflict with the class below";
 
         for (int i = 0; i < arrayCount; i++) {
             if (conflictsArray.get(i).toString().equals("anyType{}"))

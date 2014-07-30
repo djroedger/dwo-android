@@ -5,4 +5,4 @@
     android:layout_height="match_parent"
     tools:context="com.akadasoftware.danceworksonline.Splash"
     tools:ignore="MergeRootFrame"
-    android:background="@drawable/logo_danceworks_online1" />
+    android:background="@drawable/logo_dancworks" />

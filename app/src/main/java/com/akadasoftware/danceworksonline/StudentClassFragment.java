@@ -31,7 +31,7 @@ import org.ksoap2.transport.HttpTransportSE;
 import java.util.ArrayList;
 
 /**
- * List Fragment that gets the array of student classes. Also has a spinner that chna
+ * List Fragment that gets the array of student Classes. Also has a spinner that chna
  */
 public class StudentClassFragment extends ListFragment {
 

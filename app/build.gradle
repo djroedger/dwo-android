@@ -36,6 +36,7 @@ dependencies {
     compile 'com.android.support:gridlayout-v7:19.0.+'
     compile 'com.android.support:appcompat-v7:19.0.+'
     compile 'com.google.code.gson:gson:2.2.4'
+    compile 'com.squareup:android-times-square:1.2.1@aar'
     compile('com.github.chrisbanes.actionbarpulltorefresh:extra-abc:+') {
         exclude group: 'com.android.support', module: 'support-v4'
         exclude group: 'com.android.support', module: 'appcompat-v7'
@@ -43,4 +44,5 @@ dependencies {
     }
     //excludes newest support library version since pulltorefresh defaults to most current version of support library even if that version is in preview
     compile files('libs/ksoap2-android-assembly-3.0.0-jar-with-dependencies.jar')
+
 }

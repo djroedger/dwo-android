@@ -40,29 +40,33 @@ public class Splash extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        if (android.os.Build.VERSION.SDK_INT > 16) {
-            setContentView(R.layout.activity_logo_splash);
-            getBackground bg = new getBackground();
-            bg.execute();
-
-        } else {
-            setContentView(R.layout.activity_default_splash);
-        }
+        _appPrefs = new AppPreferences(getApplicationContext());
         /**
          * Uses loginPreferences to get the loggedin field to check whether or not the user has a
          * saved profile. From there it either goes to the login screen or the home screen.
          */
         loginPreferences = getSharedPreferences("loginPrefs", MODE_PRIVATE);
         loginEditor = loginPreferences.edit();
-        _appPrefs = new AppPreferences(getApplicationContext());
+
 
         _appPrefs.saveNavDrawerPosition(0);
 
 
         oUser = _appPrefs.getUser();
         oGlobals = new Globals();
-        LogoName = _appPrefs.getLogoName();
+
+        if (android.os.Build.VERSION.SDK_INT > 16) {
+
+            setContentView(R.layout.activity_logo_splash);
+            LogoName = _appPrefs.getLogoName();
+
+            getBackground bg = new getBackground();
+            bg.execute();
+
+        } else {
+            setContentView(R.layout.activity_default_splash);
+        }
+
 
         /**
          * Test if they have an api high enough to be able to set their own icon otherwise goes to
@@ -118,6 +122,7 @@ public class Splash extends ActionBarActivity {
              * logo name for future reference
              */
 
+
             logoUrl = "https://a77f5e8a78b68f5605b7-acb3eef5f1b156a5a4173453f521b028.ssl.cf1.rackcdn.com/" + LogoName;
 
             final Drawable background = ImageOperations(logoUrl, "company_logo");
@@ -127,16 +132,19 @@ public class Splash extends ActionBarActivity {
                 @Override
                 public void run() {
                     if (LogoName.equals("") || LogoName.equals("anyType{}")) {
-                        fm.setBackground(getResources().getDrawable(R.drawable.logo_danceworks_online1));
+                        fm.setBackground(getResources().getDrawable(R.drawable.logo_dancworks));
                     } else {
                         fm.setBackground(background);
                     }
 
-                    isTablet = getResources().getBoolean(R.bool.isTablet);
-                    if (!isTablet) {
-                        fm.setScaleX(Float.valueOf("0.5"));
-                        fm.setScaleY(Float.valueOf("0.5"));
-                    }
+                    /**
+                     *  isTablet = getResources().getBoolean(R.bool.isTablet);
+                     if (!isTablet) {
+                     fm.setScaleX(Float.valueOf("0.5"));
+                     fm.setScaleY(Float.valueOf("0.5"));
+                     }
+                     */
+
                 }
             });
 
@@ -320,7 +328,7 @@ public class Splash extends ActionBarActivity {
     }
 
     /**
-     * Gets list of classes, runs in onpost of school to ensure we have a session id
+     * Gets list of Classes, runs in onpost of school to ensure we have a session id
      */
     public class getStudentClassesAsync extends
             AsyncTask<Globals.Data, Void, ArrayList<SchoolClasses>> {
