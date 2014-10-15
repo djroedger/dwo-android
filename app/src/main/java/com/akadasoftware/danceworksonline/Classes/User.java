@@ -13,7 +13,7 @@ public class User implements KvmSerializable {
     public int SchID, UserID, TransType, TransPaymentKind, TransChargeKind, TransDeleted, StudentSort,
             StudentSelection, StudentsShown, StudentGroupCode, AccountSort, AccountSelection,
             AccountsShown, AccountGroupCode, ClassSort, ClassesShown, StaffSort, StaffShown,
-            AccountListSize, StudentListSize, ClassListSize, StaffListSize;
+            AccountListSize, StudentListSize, ClassListSize, StaffListSize, StaffID;
     public long Access;
     public String UserName, EMailAddr, DisplayName, TransStartDate, TransEndDate, UserGUID;
     public boolean Admin, ProcReg, TransTypeOptions, TransDateOptions, StudentOptions, AccountOptions,
@@ -22,7 +22,7 @@ public class User implements KvmSerializable {
     public User() {
     }
 
-    public User(int schid, int userid, String username, String emailaddr, boolean admin, long access, boolean procreg, String displayname, boolean transtypeoptions, int transtype, int transpaymentkind, int transchargekind, boolean transdateoptions, String transstartdate, String transenddate, int transdeleted, boolean studentoptions, int studentsort, int studentselection, int studentsshown, int studentgroupcode, boolean accountoptions, int accountsort, int accountselection, int accountsshown, int accountgroupcode, boolean classoptions, int classsort, int classesshown, boolean staffoptions, int staffsort, int staffshown, boolean shownotes, boolean showtransactions, boolean showregistrations, int accountlistsize, int studentlistsize, int classlistsize, int stafflistsize, String userguid) {
+    public User(int schid, int userid, String username, String emailaddr, boolean admin, long access, boolean procreg, String displayname, boolean transtypeoptions, int transtype, int transpaymentkind, int transchargekind, boolean transdateoptions, String transstartdate, String transenddate, int transdeleted, boolean studentoptions, int studentsort, int studentselection, int studentsshown, int studentgroupcode, boolean accountoptions, int accountsort, int accountselection, int accountsshown, int accountgroupcode, boolean classoptions, int classsort, int classesshown, boolean staffoptions, int staffsort, int staffshown, boolean shownotes, boolean showtransactions, boolean showregistrations, int accountlistsize, int studentlistsize, int classlistsize, int stafflistsize, String userguid, int staffid) {
 
         SchID = schid;
         UserID = userid;
@@ -64,6 +64,7 @@ public class User implements KvmSerializable {
         ClassListSize = classlistsize;
         StaffListSize = stafflistsize;
         UserGUID = userguid;
+        StaffID = staffid;
     }
 
     @Override
@@ -149,6 +150,8 @@ public class User implements KvmSerializable {
                 return StaffListSize;
             case 39:
                 return UserGUID;
+            case 40:
+                return StaffID;
         }
 
         return null;
@@ -157,7 +160,7 @@ public class User implements KvmSerializable {
     @Override
     public int getPropertyCount() {
         // TODO Auto-generated method stub
-        return 40;
+        return 41;
     }
 
     @Override
@@ -323,6 +326,10 @@ public class User implements KvmSerializable {
                 info.type = PropertyInfo.STRING_CLASS;
                 info.name = "UserGUID";
                 break;
+            case 40:
+                info.type = PropertyInfo.INTEGER_CLASS;
+                info.name = "StaffID";
+                break;
             default:
                 break;
         }
@@ -451,6 +458,9 @@ public class User implements KvmSerializable {
                 break;
             case 39:
                 UserGUID = value.toString();
+                break;
+            case 40:
+                StaffID = Integer.parseInt(value.toString());
                 break;
             default:
                 break;

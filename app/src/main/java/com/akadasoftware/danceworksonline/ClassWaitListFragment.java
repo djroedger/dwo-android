@@ -8,17 +8,18 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
-import android.widget.AdapterView;
 import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.akadasoftware.danceworksonline.Adapters.ClassWaitListAdapter;
+import com.akadasoftware.danceworksonline.Adapters.SchoolClassAdapter;
 import com.akadasoftware.danceworksonline.Classes.AppPreferences;
 import com.akadasoftware.danceworksonline.Classes.ClassWaitList;
 import com.akadasoftware.danceworksonline.Classes.Globals;
 import com.akadasoftware.danceworksonline.Classes.SchoolClasses;
+import com.akadasoftware.danceworksonline.Classes.Student;
 import com.akadasoftware.danceworksonline.Classes.User;
-import com.akadasoftware.danceworksonline.dummy.DummyContent;
 
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.PropertyInfo;
@@ -31,23 +32,30 @@ import java.util.ArrayList;
 /**
  * Created by Kyle on 7/21/2014.
  */
-public class ClassWaitListFragment extends ListFragment implements AbsListView.OnItemClickListener {
+public class ClassWaitListFragment extends ListFragment {
 
     Activity activity;
     Globals oGlobals;
     User oUser;
     SchoolClasses oSchoolClass;
+    Student oStudent;
     ArrayList<SchoolClasses> schoolClassList;
 
     ArrayList<ClassWaitList> classWaitArray;
+
+    ArrayList<Student> studentArray;
+
+    ArrayList<String> conflictsArray = new ArrayList<String>();
     private AppPreferences _appPrefs;
 
     private ClassWaitListAdapter classAdapter;
+    private SchoolClassAdapter schoolClassAdapter;
 
 
     int position;
 
-    private OnWaitListInteractionListener mListener;
+    private onEnrollDialog eListener;
+
     /**
      * The fragment's ListView/GridView.
      */
@@ -86,7 +94,7 @@ public class ClassWaitListFragment extends ListFragment implements AbsListView.O
         _appPrefs = new AppPreferences(activity);
         oUser = _appPrefs.getUser();
         position = getArguments().getInt("Position");
-
+        studentArray = _appPrefs.getStudents();
         schoolClassList = _appPrefs.getSchoolClassList();
         oSchoolClass = schoolClassList.get(position);
 
@@ -99,7 +107,7 @@ public class ClassWaitListFragment extends ListFragment implements AbsListView.O
                              Bundle savedInstanceState) {
         super.onCreateView(inflater, container,
                 savedInstanceState);
-        View view = inflater.inflate(R.layout.fragment_classroster, container, false);
+        View view = inflater.inflate(R.layout.fragment_classroster_list, container, false);
 
         return view;
     }
@@ -108,7 +116,7 @@ public class ClassWaitListFragment extends ListFragment implements AbsListView.O
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
-            mListener = (OnWaitListInteractionListener) activity;
+            eListener = (onEnrollDialog) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                     + " must implement onWaitListInteractionListener");
@@ -118,18 +126,25 @@ public class ClassWaitListFragment extends ListFragment implements AbsListView.O
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
+        eListener = null;
     }
-
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        if (null != mListener) {
-            // Notify the active callbacks interface (the activity, if the
-            // fragment is attached to one) that an item has been selected.
-            mListener.onWaitListInteraction(DummyContent.ITEMS.get(position).id);
+    public void onListItemClick(ListView l, View v, int position, long id) {
+        super.onListItemClick(l, v, position, id);
+
+        for (int i = 0; i < studentArray.size(); i++) {
+            if (studentArray.get(i).StuID == classWaitArray.get(position).StuID) {
+                oStudent = studentArray.get(i);
+            }
         }
+
+        checkClassConflicts conflictCheck = new checkClassConflicts();
+        conflictCheck.execute();
+
+        eListener.onEnrollDialog(oSchoolClass, oStudent, conflictsArray, position, schoolClassAdapter);
     }
+
 
     /**
      * The default content for this Fragment has a TextView that is shown when
@@ -154,8 +169,12 @@ public class ClassWaitListFragment extends ListFragment implements AbsListView.O
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
      */
-    public interface OnWaitListInteractionListener {
-        public void onWaitListInteraction(String id);
+
+
+    public interface onEnrollDialog {
+
+        public void onEnrollDialog(SchoolClasses objSchoolClass, Student oStudent,
+                                   ArrayList<String> conflictsArray, int positionOfClass, SchoolClassAdapter classAdapter);
     }
 
     public class getClassWaitListAsync extends
@@ -250,6 +269,24 @@ public class ClassWaitListFragment extends ListFragment implements AbsListView.O
         }
 
         return classWait;
+    }
+
+
+    /**
+     * Checking if class that is to be enrolled conflicks with any other previously registered
+     * Classes
+     */
+    public class checkClassConflicts extends AsyncTask<Globals.Data, Void, ArrayList<String>> {
+        @Override
+        protected ArrayList<String> doInBackground(Globals.Data... data) {
+
+            return oGlobals.checkConflicts(_appPrefs, oSchoolClass, oStudent);
+        }
+
+        protected void onPostExecute(ArrayList<String> result) {
+            conflictsArray = result;
+
+        }
     }
 
 }

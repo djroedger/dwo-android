@@ -8,6 +8,7 @@ import com.akadasoftware.danceworksonline.Adapters.SessionAdapter;
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.PropertyInfo;
 import org.ksoap2.serialization.SoapObject;
+import org.ksoap2.serialization.SoapPrimitive;
 import org.ksoap2.serialization.SoapSerializationEnvelope;
 import org.ksoap2.transport.HttpTransportSE;
 
@@ -120,7 +121,7 @@ public class Globals {
     }
 
     /**
-     * Builds start and end time strings for classes
+     * Builds start and end time strings for Classes
      */
 
     public String BuildTimeString(String classTime, SchoolClasses oSchoolClass, Boolean start) {
@@ -738,15 +739,15 @@ public class Globals {
      * Get class list
      */
 
-    public ArrayList<SchoolClasses> getClasses(AppPreferences _appPrefsNew, int intSessionID, int intStuID) {
+    public ArrayList<SchoolClasses> getClasses(AppPreferences _appPrefsNew, int intSessionID, int intStuID, int intStaffID) {
         _appPrefs = _appPrefsNew;
         String MethodName = "getSchoolClasses";
-        SoapObject response = InvokeClassMethod(Globals.Data.URL, MethodName, intSessionID, intStuID);
+        SoapObject response = InvokeClassMethod(Globals.Data.URL, MethodName, intSessionID, intStuID, intStaffID);
         return RetrieveClassFromSoap(response);
 
     }
 
-    public SoapObject InvokeClassMethod(String URL, String MethodName, int intSessionID, int intStuID) {
+    public SoapObject InvokeClassMethod(String URL, String MethodName, int intSessionID, int intStuID, int intStaffID) {
 
         SoapObject request = GetClassSoapObject(MethodName);
 
@@ -776,6 +777,11 @@ public class Globals {
         piStuID.setName("intStuID");
         piStuID.setValue(intStuID);
         request.addProperty(piStuID);
+
+        PropertyInfo piStaffID = new PropertyInfo();
+        piStaffID.setName("intStaffID");
+        piStaffID.setValue(intStaffID);
+        request.addProperty(piStaffID);
 
 
         SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(
@@ -830,5 +836,442 @@ public class Globals {
         return schClassesArray;
     }
 
+
+    /**
+     * Get Student Attendance
+     */
+
+    public ArrayList<StudentAttendance> getAttendance(AppPreferences _appPrefsNew, int intStuID) {
+        _appPrefs = _appPrefsNew;
+        String MethodName = "getStudentAttendance";
+        SoapObject response = InvokeAttendanceMethod(Globals.Data.URL, MethodName, intStuID);
+        return RetrieveAttendanceFromSoap(response);
+
+    }
+
+    public SoapObject InvokeAttendanceMethod(String URL, String MethodName, int intStuID) {
+
+        SoapObject request = GetClassSoapObject(MethodName);
+
+        User oUser = _appPrefs.getUser();
+
+        PropertyInfo piUserID = new PropertyInfo();
+        piUserID.setName("UserID");
+        piUserID.setValue(oUser.UserID);
+        request.addProperty(piUserID);
+
+        PropertyInfo piUserGUID = new PropertyInfo();
+        piUserGUID.setName("UserGUID");
+        piUserGUID.setValue(oUser.UserGUID);
+        request.addProperty(piUserGUID);
+
+        PropertyInfo piStuID = new PropertyInfo();
+        piStuID.setName("StuID");
+        piStuID.setValue(intStuID);
+        request.addProperty(piStuID);
+
+
+        SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(
+                SoapEnvelope.VER11);
+        envelope.dotNet = true;
+        envelope.setOutputSoapObject(request);
+        return MakeAttendanceCall(URL, envelope, Globals.Data.NAMESPACE, MethodName);
+    }
+
+    public static SoapObject MakeAttendanceCall(String URL,
+                                                SoapSerializationEnvelope envelope, String NAMESPACE,
+                                                String METHOD_NAME) {
+        HttpTransportSE HttpTransport = new HttpTransportSE(URL);
+        SoapObject response = null;
+        try {
+            envelope.addMapping(NAMESPACE, "StudentAttendance",
+                    new StudentAttendance().getClass());
+            HttpTransport.call(METHOD_NAME, envelope);
+            response = (SoapObject) envelope.getResponse();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+        }
+        return response;
+    }
+
+    public static ArrayList<StudentAttendance> RetrieveAttendanceFromSoap(SoapObject soap) {
+
+        ArrayList<StudentAttendance> stuAttendance = new ArrayList<StudentAttendance>();
+        for (int i = 0; i < soap.getPropertyCount(); i++) {
+
+            SoapObject attendanceItem = (SoapObject) soap.getProperty(i);
+
+            StudentAttendance attendance = new StudentAttendance();
+            for (int j = 0; j < attendanceItem.getPropertyCount(); j++) {
+                attendance.setProperty(j, attendanceItem.getProperty(j)
+                        .toString());
+                if (attendanceItem.getProperty(j).equals("anyType{}")) {
+                    attendanceItem.setProperty(j, "");
+                }
+
+            }
+            stuAttendance.add(i, attendance);
+        }
+
+        return stuAttendance;
+    }
+
+
+    /**
+     * Check Student conflicts with other classes
+     */
+
+    public ArrayList<String> checkConflicts(AppPreferences _appPrefsNew, SchoolClasses oSchoolClass,
+                                            Student oStudent) {
+        _appPrefs = _appPrefsNew;
+        String MethodName = "checkClassEnrollment";
+        SoapObject response = InvokeConflictMethod(Globals.Data.URL, MethodName, oSchoolClass, oStudent);
+        return RetrieveConflictsFromSoap(response);
+
+    }
+
+    public SoapObject InvokeConflictMethod(String URL, String MethodName, SchoolClasses oSchoolClass,
+                                           Student oStudent) {
+
+        User oUser = _appPrefs.getUser();
+
+        SoapObject request = GetSoapObject(MethodName);
+
+        PropertyInfo piUserID = new PropertyInfo();
+        piUserID.setName("UserID");
+        piUserID.setValue(oUser.UserID);
+        request.addProperty(piUserID);
+
+        PropertyInfo piUserGUID = new PropertyInfo();
+        piUserGUID.setType("STRING_CLASS");
+        piUserGUID.setName("UserGUID");
+        piUserGUID.setValue(oUser.UserGUID);
+        request.addProperty(piUserGUID);
+
+        PropertyInfo piClMax = new PropertyInfo();
+        piClMax.setName("intClMax");
+        piClMax.setValue(oSchoolClass.ClMax);
+        request.addProperty(piClMax);
+
+        PropertyInfo piClCur = new PropertyInfo();
+        piClCur.setName("intClCur");
+        piClCur.setValue(oSchoolClass.ClCur);
+        request.addProperty(piClCur);
+
+        PropertyInfo piClTime = new PropertyInfo();
+        piClTime.setName("strClTime");
+        piClTime.setValue(oSchoolClass.ClTime);
+        request.addProperty(piClTime);
+
+        PropertyInfo piClStop = new PropertyInfo();
+        piClStop.setName("strClStop");
+        piClStop.setValue(oSchoolClass.ClStop);
+        request.addProperty(piClStop);
+
+        PropertyInfo piMultiDay = new PropertyInfo();
+        piMultiDay.setName("boolMultiDay");
+        piMultiDay.setValue(oSchoolClass.MultiDay);
+        request.addProperty(piMultiDay);
+
+        PropertyInfo piMonday = new PropertyInfo();
+        piMonday.setName("boolMonday");
+        piMonday.setValue(oSchoolClass.Monday);
+        request.addProperty(piMonday);
+
+        PropertyInfo piTuesday = new PropertyInfo();
+        piTuesday.setName("boolTuesday");
+        piTuesday.setValue(oSchoolClass.Tuesday);
+        request.addProperty(piTuesday);
+
+        PropertyInfo piWednesday = new PropertyInfo();
+        piWednesday.setName("boolWednesday");
+        piWednesday.setValue(oSchoolClass.Wednesday);
+        request.addProperty(piWednesday);
+
+        PropertyInfo piThursday = new PropertyInfo();
+        piThursday.setName("boolThursday");
+        piThursday.setValue(oSchoolClass.Thursday);
+        request.addProperty(piThursday);
+
+        PropertyInfo piFriday = new PropertyInfo();
+        piFriday.setName("boolFriday");
+        piFriday.setValue(oSchoolClass.Friday);
+        request.addProperty(piFriday);
+
+        PropertyInfo piSaturday = new PropertyInfo();
+        piSaturday.setName("boolSaturday");
+        piSaturday.setValue(oSchoolClass.Saturday);
+        request.addProperty(piSaturday);
+
+        PropertyInfo piSunday = new PropertyInfo();
+        piSunday.setName("boolSunday");
+        piSunday.setValue(oSchoolClass.Sunday);
+        request.addProperty(piSunday);
+
+        PropertyInfo piClDayNo = new PropertyInfo();
+        piClDayNo.setName("strClDayNo");
+        piClDayNo.setValue(oSchoolClass.ClDayNo);
+        request.addProperty(piClDayNo);
+
+        PropertyInfo piStuID = new PropertyInfo();
+        piStuID.setName("intStuID");
+        piStuID.setValue(oStudent.StuID);
+        request.addProperty(piStuID);
+
+        PropertyInfo piClID = new PropertyInfo();
+        piClID.setName("intClID");
+        piClID.setValue(oSchoolClass.ClID);
+        request.addProperty(piClID);
+
+        PropertyInfo piSessionID = new PropertyInfo();
+        piSessionID.setName("intSessionID");
+        piSessionID.setValue(oSchoolClass.SessionID);
+        request.addProperty(piSessionID);
+
+        SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(
+                SoapEnvelope.VER11);
+        envelope.dotNet = true;
+        envelope.setOutputSoapObject(request);
+        return MakeConflictCall(URL, envelope, Globals.Data.NAMESPACE, MethodName);
+    }
+
+    public static SoapObject MakeConflictCall(String URL,
+                                              SoapSerializationEnvelope envelope, String NAMESPACE,
+                                              String METHOD_NAME) {
+        HttpTransportSE HttpTransport = new HttpTransportSE(URL);
+        SoapObject response = null;
+        try {
+
+            HttpTransport.call(METHOD_NAME, envelope);
+            response = (SoapObject) envelope.getResponse();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return response;
+    }
+
+    public static ArrayList<String> RetrieveConflictsFromSoap(SoapObject soap) {
+
+        ArrayList<String> strConflictsArray = new ArrayList<String>();
+
+        for (int i = 0; i < soap.getPropertyCount(); i++) {
+
+            if (soap.getProperty(i).equals("anyType{}"))
+                strConflictsArray.add(i, "");
+            else
+                strConflictsArray.add(i, soap.getProperty(i).toString());
+
+        }
+
+        return strConflictsArray;
+    }
+
+
+    /**
+     * Enroll Student in Class
+     */
+
+    public Integer enrollInClass(AppPreferences _appPrefsNew, int intStuID, SchoolClasses objSchoolClasses) {
+        _appPrefs = _appPrefsNew;
+        String MethodName = "enrollStudent";
+        SoapPrimitive response = InvokeEnrollMethod(Globals.Data.URL, MethodName, intStuID, objSchoolClasses);
+        return RetrieveEnrollFromSoap(response);
+
+    }
+
+    public SoapPrimitive InvokeEnrollMethod(String URL, String MethodName, int intStuID, SchoolClasses objSchoolClasses) {
+
+        SoapObject request = GetClassSoapObject(MethodName);
+
+        User oUser = _appPrefs.getUser();
+        SchoolClasses selectedSchoolClasses = objSchoolClasses;
+
+        PropertyInfo piUserID = new PropertyInfo();
+        piUserID.setName("UserID");
+        piUserID.setValue(oUser.UserID);
+        request.addProperty(piUserID);
+
+        PropertyInfo piUserGUID = new PropertyInfo();
+        piUserGUID.setName("UserGUID");
+        piUserGUID.setValue(oUser.UserGUID);
+        request.addProperty(piUserGUID);
+
+        PropertyInfo piStuID = new PropertyInfo();
+        piStuID.setName("intStuID");
+        piStuID.setValue(intStuID);
+        request.addProperty(piStuID);
+
+        PropertyInfo piClID = new PropertyInfo();
+        piClID.setName("intClID");
+        piClID.setValue(selectedSchoolClasses.ClID);
+        request.addProperty(piClID);
+
+        PropertyInfo piClRID = new PropertyInfo();
+        piClRID.setName("intClRID");
+        piClRID.setValue(selectedSchoolClasses.ClRID);
+        request.addProperty(piClRID);
+
+        PropertyInfo piWaitID = new PropertyInfo();
+        piWaitID.setName("intWaitID");
+        piWaitID.setValue(selectedSchoolClasses.WaitID);
+        request.addProperty(piWaitID);
+
+
+        SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(
+                SoapEnvelope.VER11);
+        envelope.dotNet = true;
+        envelope.setOutputSoapObject(request);
+        return MakeEnrollCall(URL, envelope, Globals.Data.NAMESPACE, MethodName);
+    }
+
+    public static SoapPrimitive MakeEnrollCall(String URL,
+                                               SoapSerializationEnvelope envelope, String NAMESPACE,
+                                               String METHOD_NAME) {
+        HttpTransportSE HttpTransport = new HttpTransportSE(URL);
+        SoapPrimitive responseEnroll = null;
+        try {
+
+            HttpTransport.call(METHOD_NAME, envelope);
+            responseEnroll = (SoapPrimitive) envelope.getResponse();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return responseEnroll;
+    }
+
+    public static Integer RetrieveEnrollFromSoap(SoapPrimitive soap) {
+        int response = Integer.parseInt(soap.toString());
+
+        return response;
+    }
+
+    /**
+     * Enroll Student in WaitList
+     */
+
+    public Integer placeStudentOnWaitList(AppPreferences _appPrefsNew, SchoolClasses objSchoolClasses,
+                                          Student objStudent) {
+        _appPrefs = _appPrefsNew;
+        String MethodName = "waitListStudent";
+        SoapPrimitive response = InvokeWaitListMethod(Globals.Data.URL, MethodName, objSchoolClasses, objStudent);
+        return RetrieveWaitListFromSoap(response);
+
+    }
+
+    public SoapPrimitive InvokeWaitListMethod(String URL, String MethodName, SchoolClasses objSchoolClasses,
+                                              Student objStudent) {
+
+        SoapObject requestWaitList = GetClassSoapObject(MethodName);
+
+        SchoolClasses selectedSchoolClasses = objSchoolClasses;
+        Student selectedStudent = objStudent;
+        User oUser = _appPrefs.getUser();
+        School oSchool = _appPrefs.getSchool();
+
+
+        PropertyInfo piStrAction = new PropertyInfo();
+        piStrAction.setName("strAction");
+        piStrAction.setValue("WaitlistClass");
+        requestWaitList.addProperty(piStrAction);
+
+        PropertyInfo piClID = new PropertyInfo();
+        piClID.setName("intClID");
+        piClID.setValue(selectedSchoolClasses.ClID);
+        requestWaitList.addProperty(piClID);
+
+        PropertyInfo piUserID = new PropertyInfo();
+        piUserID.setName("intUserID");
+        piUserID.setValue(oUser.UserID);
+        requestWaitList.addProperty(piUserID);
+
+        PropertyInfo piUserGUID = new PropertyInfo();
+        piUserGUID.setName("UserGUID");
+        piUserGUID.setValue(oUser.UserGUID);
+        requestWaitList.addProperty(piUserGUID);
+
+        PropertyInfo piSchID = new PropertyInfo();
+        piSchID.setName("intSchID");
+        piSchID.setValue(oSchool.SchID);
+        requestWaitList.addProperty(piSchID);
+
+        PropertyInfo piStuID = new PropertyInfo();
+        piStuID.setName("intStuID");
+        piStuID.setValue(selectedStudent.StuID);
+        requestWaitList.addProperty(piStuID);
+
+
+        PropertyInfo piAcctID = new PropertyInfo();
+        piAcctID.setName("intAcctID");
+        piAcctID.setValue(selectedStudent.AcctID);
+        requestWaitList.addProperty(piAcctID);
+
+        PropertyInfo piCurrentSessionID = new PropertyInfo();
+        piCurrentSessionID.setName("intCurrSessionID");
+        piCurrentSessionID.setValue(oSchool.SessionID);
+        requestWaitList.addProperty(piCurrentSessionID);
+
+        PropertyInfo piSelectedClassSessionID = new PropertyInfo();
+        piSelectedClassSessionID.setName("intClassSessionID");
+        piSelectedClassSessionID.setValue(oSchool.SessionID);
+        requestWaitList.addProperty(piSelectedClassSessionID);
+
+        PropertyInfo piFName = new PropertyInfo();
+        piFName.setName("FName");
+        piFName.setValue(selectedStudent.FName);
+        requestWaitList.addProperty(piFName);
+
+        PropertyInfo piLName = new PropertyInfo();
+        piLName.setName("LName");
+        piLName.setValue(selectedStudent.LName);
+        requestWaitList.addProperty(piLName);
+
+        PropertyInfo piAcctName = new PropertyInfo();
+        piAcctName.setName("strAcctName");
+        piAcctName.setValue(selectedStudent.AcctName);
+        requestWaitList.addProperty(piAcctName);
+
+        PropertyInfo piPhone = new PropertyInfo();
+        piPhone.setName("strPhone");
+        piPhone.setValue(selectedStudent.Phone);
+        requestWaitList.addProperty(piPhone);
+
+        PropertyInfo piNotes = new PropertyInfo();
+        piNotes.setName("strNotes");
+        piNotes.setValue(selectedStudent.Notes);
+        requestWaitList.addProperty(piNotes);
+
+        SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(
+                SoapEnvelope.VER11);
+        envelope.dotNet = true;
+        envelope.setOutputSoapObject(requestWaitList);
+
+        return MakeWaitListCall(URL, envelope, Globals.Data.NAMESPACE, MethodName);
+    }
+
+    public static SoapPrimitive MakeWaitListCall(String URL,
+                                                 SoapSerializationEnvelope envelope, String NAMESPACE,
+                                                 String METHOD_NAME) {
+        HttpTransportSE HttpTransport = new HttpTransportSE(URL);
+        SoapPrimitive responseWaitList = null;
+        try {
+
+            HttpTransport.call(METHOD_NAME, envelope);
+            responseWaitList = (SoapPrimitive) envelope.getResponse();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return responseWaitList;
+    }
+
+    public static Integer RetrieveWaitListFromSoap(SoapPrimitive soap) {
+        int response = Integer.parseInt(soap.toString());
+
+        return response;
+    }
 
 }

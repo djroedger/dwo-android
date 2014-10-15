@@ -9,9 +9,9 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import com.akadasoftware.danceworksonline.R;
 import com.akadasoftware.danceworksonline.Classes.AppPreferences;
 import com.akadasoftware.danceworksonline.Classes.StudentRoster;
+import com.akadasoftware.danceworksonline.R;
 
 import java.util.List;
 
@@ -98,12 +98,12 @@ public class StudentRosterAdapter extends ArrayAdapter<StudentRoster> {
                 break;
         }
 
-        holder.tvFNameLName.setText(strName + "     ");
+        holder.tvFNameLName.setText(strName);
         holder.tvFNameLName.setTag(position);
 
         holder.tvStatus.setText("(" + strStatus + ")");
         holder.tvBirthDate.setText("Age: " + oStudentRoster.BirthDate);
-        holder.tvBirthDate.setText("| " + oStudentRoster.Phone);
+        holder.tvBirthDate.setText("" + oStudentRoster.Phone);
 
 
         return convertView;

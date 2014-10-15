@@ -25,6 +25,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.akadasoftware.danceworksonline.Classes.AppPreferences;
+import com.akadasoftware.danceworksonline.Classes.User;
 
 /**
  * Fragment used for managing interactions for and presentation of a navigation drawer.
@@ -64,6 +65,8 @@ public class NavigationDrawerFragment extends Fragment {
     private boolean mFromSavedInstanceState;
     private boolean mUserLearnedDrawer;
 
+    private User oUser;
+
     Activity activity;
 
     public NavigationDrawerFragment() {
@@ -82,6 +85,7 @@ public class NavigationDrawerFragment extends Fragment {
 
         activity = getActivity();
         _appPrefs = new AppPreferences(activity);
+        oUser = _appPrefs.getUser();
         if (savedInstanceState != null) {
             mCurrentSelectedPosition = savedInstanceState.getInt(STATE_SELECTED_POSITION);
             mFromSavedInstanceState = true;
@@ -120,16 +124,33 @@ public class NavigationDrawerFragment extends Fragment {
             }
 
         });
-        mDrawerListView.setAdapter(new ArrayAdapter<String>(
-                getActionBar().getThemedContext(),
-                android.R.layout.simple_list_item_1,
-                android.R.id.text1,
-                new String[]{
-                        getString(R.string.title_accounts),
-                        getString(R.string.title_students),
-                        getString(R.string.title_classes),
-                }
-        ));
+
+        if (oUser.StaffID > 0) {
+            mDrawerListView.setAdapter(new ArrayAdapter<String>(
+                    getActionBar().getThemedContext(),
+                    android.R.layout.simple_list_item_1,
+                    android.R.id.text1,
+                    new String[]{
+                            getString(R.string.title_accounts),
+                            getString(R.string.title_students),
+                            getString(R.string.title_classes),
+                            getString(R.string.title_my_classes),
+                    }
+            ));
+
+        } else {
+            mDrawerListView.setAdapter(new ArrayAdapter<String>(
+                    getActionBar().getThemedContext(),
+                    android.R.layout.simple_list_item_1,
+                    android.R.id.text1,
+                    new String[]{
+                            getString(R.string.title_accounts),
+                            getString(R.string.title_students),
+                            getString(R.string.title_classes),
+                    }
+            ));
+        }
+
         mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
         return mDrawerListView;
     }
@@ -228,20 +249,34 @@ public class NavigationDrawerFragment extends Fragment {
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
 
         switch (position) {
+            //Accounts Tab
             case 0:
                 newFragment = new AccountListFragment();
                 transaction.replace(R.id.container, newFragment);
                 transaction.addToBackStack(null);
                 transaction.commit();
                 break;
+            //Students Tab
             case 1:
                 newFragment = new StudentsListFragment();
                 transaction.replace(R.id.container, newFragment);
                 transaction.addToBackStack(null);
                 transaction.commit();
                 break;
+            //Classes Tab
             case 2:
-                newFragment = new ClassesListFragment();
+                //newFragment = new ClassesListFragment();
+                _appPrefs.saveAccessAllClasses(true);
+                newFragment = ClassesListFragment.newInstance(_appPrefs.getClassListPosition(), true);
+                transaction.replace(R.id.container, newFragment);
+                transaction.addToBackStack(null);
+                transaction.commit();
+                break;
+            //My Classes Tab
+            case 3:
+                //newFragment = new ClassesListFragment();
+                _appPrefs.saveAccessAllClasses(false);
+                newFragment = ClassesListFragment.newInstance(_appPrefs.getClassListPosition(), false);
                 transaction.replace(R.id.container, newFragment);
                 transaction.addToBackStack(null);
                 transaction.commit();

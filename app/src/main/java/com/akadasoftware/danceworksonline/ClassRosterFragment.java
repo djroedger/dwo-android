@@ -94,7 +94,7 @@ public class ClassRosterFragment extends ListFragment implements AbsListView.OnI
                              Bundle savedInstanceState) {
         super.onCreateView(inflater, container,
                 savedInstanceState);
-        View view = inflater.inflate(R.layout.fragment_classroster, container, false);
+        View view = inflater.inflate(R.layout.fragment_classroster_list, container, false);
 
         return view;
     }
@@ -231,12 +231,12 @@ public class ClassRosterFragment extends ListFragment implements AbsListView.OnI
     public static ArrayList<StudentRoster> RetrieveStudentRosterFromSoap(SoapObject soap) {
 
         ArrayList<StudentRoster> rosterStudents = new ArrayList<StudentRoster>();
-        for (int i = 0; i < soap.getPropertyCount() - 1; i++) {
+        for (int i = 0; i < soap.getPropertyCount(); i++) {
 
             SoapObject studentrosteritem = (SoapObject) soap.getProperty(i);
 
             StudentRoster roster = new StudentRoster();
-            for (int j = 0; j < studentrosteritem.getPropertyCount() - 1; j++) {
+            for (int j = 0; j < studentrosteritem.getPropertyCount(); j++) {
                 roster.setProperty(j, studentrosteritem.getProperty(j)
                         .toString());
                 if (studentrosteritem.getProperty(j).equals("anyType{}")) {

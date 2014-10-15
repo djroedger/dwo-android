@@ -39,6 +39,7 @@ public class ClassesListFragment extends ListFragment {
     private AppPreferences _appPrefs;
     Session session;
     int SessionID, position;
+    Boolean showAllClasses;
     String METHOD_NAME = "";
     String SOAP_ACTION = "";
 
@@ -69,10 +70,11 @@ public class ClassesListFragment extends ListFragment {
     }
 
     // TODO: Rename and change types of parameters
-    public static ClassesListFragment newInstance(int position) {
+    public static ClassesListFragment newInstance(int position, boolean allClasses) {
         ClassesListFragment fragment = new ClassesListFragment();
         Bundle args = new Bundle();
         args.putInt("Position", position);
+        args.putBoolean("allClasses", allClasses);
         fragment.setArguments(args);
         return fragment;
     }
@@ -92,6 +94,7 @@ public class ClassesListFragment extends ListFragment {
         oUser = _appPrefs.getUser();
         oGlobal = new Globals();
         oSchool = _appPrefs.getSchool();
+        showAllClasses = getArguments().getBoolean("allClasses");
         classAdapter = new SchoolClassAdapter(getActivity(),
                 R.layout.item_studentclass, schoolClasssesArray);
         setListAdapter(classAdapter);
@@ -254,13 +257,25 @@ public class ClassesListFragment extends ListFragment {
 
         @Override
         protected ArrayList<SchoolClasses> doInBackground(Globals.Data... data) {
-
-            return oGlobal.getClasses(_appPrefs, SessionID, 0);
+            //Picked the Classes tab, shows all of the classes
+            if (showAllClasses)
+                return oGlobal.getClasses(_appPrefs, SessionID, 0, 0);
+                //Picked my Classes tab, shows only classes they are teaching
+            else
+                return oGlobal.getClasses(_appPrefs, SessionID, 0, oUser.StaffID);
         }
 
         protected void onPostExecute(ArrayList<SchoolClasses> result) {
 
             schoolClasssesArray = result;
+            if (_appPrefs.getAccessAllClasses()) {
+                //List of all classes
+                _appPrefs.saveSchoolClassList(schoolClasssesArray);
+            } else {
+                //List of my classes
+                _appPrefs.saveMySchoolClassList(schoolClasssesArray);
+            }
+
             classAdapter = new SchoolClassAdapter(getActivity(),
                     R.layout.item_studentclass, schoolClasssesArray);
             setListAdapter(classAdapter);

@@ -1,6 +1,7 @@
 package com.akadasoftware.danceworksonline;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -59,7 +60,7 @@ public class ClassInformationFragment extends Fragment {
     EditText etClassType, etClassLevel, etClassDescription, etStudentsEnrolled, etMaxStudents, etWaitList,
             etRoomNumber, etTuition, etDayNumber, etInstructor;
 
-    Button btnEditClass, btnSaveClass, btnCancelClass;
+    Button btnEditClass, btnStudentsList, btnSaveClass, btnCancelClass;
 
     TimePicker tpTimePicker;
 
@@ -98,13 +99,23 @@ public class ClassInformationFragment extends Fragment {
 
         oGlobals = new Globals();
         _appPrefs = new AppPreferences(activity);
-        position = getArguments().getInt("Position");
 
-        schoolClassList = _appPrefs.getSchoolClassList();
-        oSchoolClass = schoolClassList.get(position);
         oUser = _appPrefs.getUser();
+        position = getArguments().getInt("Position");
+        if (_appPrefs.getAccessAllClasses())
+            schoolClassList = _appPrefs.getSchoolClassList();
+        else
+            schoolClassList = _appPrefs.getMySchoolClassList();
 
+        oSchoolClass = schoolClassList.get(position);
         isAm = false;
+
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
 
 
     }
@@ -132,6 +143,7 @@ public class ClassInformationFragment extends Fragment {
         classSwitcher = (ViewFlipper) rootView.findViewById(R.id.classSwitcher);
 
         btnEditClass = (Button) rootView.findViewById(R.id.btnEditClass);
+        btnStudentsList = (Button) rootView.findViewById(R.id.btnStudentsList);
         btnSaveClass = (Button) rootView.findViewById(R.id.btnSaveClass);
         btnCancelClass = (Button) rootView.findViewById(R.id.btnCancelClass);
 
@@ -147,6 +159,15 @@ public class ClassInformationFragment extends Fragment {
                 fillEditText(rootView, oSchoolClass);
             }
         });
+
+        btnStudentsList.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent openEnrollPage = new Intent("com.akadasoftware.danceworksonline.ClassListOfStudents");
+                startActivity(openEnrollPage);
+            }
+        });
+
 
         btnCancelClass.setOnClickListener(new View.OnClickListener() {
             @Override

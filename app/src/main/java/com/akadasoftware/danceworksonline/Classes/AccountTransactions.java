@@ -12,7 +12,8 @@ public class AccountTransactions implements KvmSerializable {
 
     public int SchID, TID, AcctID, POSInv, TransPostHistID, SessionID, ConsentID;
     public String TNo, TDate, TDesc, GLNo, ChkNo, Status, Type, Kind, CCard, CCDate, CCAuth, CCRecNo,
-            PaymentID, ProcessData, RefNo, AuthCode, Invoice, AcqRefData, CardHolderName;
+            PaymentID, ProcessData, RefNo, AuthCode, Invoice, AcqRefData, CardHolderName, CCToken, EvoTransactionId,
+            EvoApprovalCode, EvoBatchId, EvoServiceTransactionId;
     public boolean POSTrans, Closed, PayOnline;
     public float Amount, Balance, STax1, STax2, DiscAmt;
 
@@ -25,7 +26,8 @@ public class AccountTransactions implements KvmSerializable {
                                String ccrecno, Boolean postrans, int posinv, Boolean closed, Boolean payonline,
                                int transposthistid, int sessionid, float discamt, int consentid, String paymentid,
                                String processdata, String refno, String authcode, String invoice, String acqrefdata,
-                               String cardhodlername) {
+                               String cardhodlername, String cctoken, String evotransactionid, String evoapprovalcode,
+                               String evobatchid, String evoservicetransactionid) {
 
         SchID = schid;
         TID = tid;
@@ -61,6 +63,11 @@ public class AccountTransactions implements KvmSerializable {
         Invoice = invoice;
         AcqRefData = acqrefdata;
         CardHolderName = cardhodlername;
+        cctoken = CCToken;
+        evotransactionid = EvoTransactionId;
+        evoapprovalcode = EvoApprovalCode;
+        evobatchid = EvoBatchId;
+        evoservicetransactionid = EvoServiceTransactionId;
     }
 
 
@@ -135,6 +142,16 @@ public class AccountTransactions implements KvmSerializable {
                 return AcqRefData;
             case 33:
                 return CardHolderName;
+            case 34:
+                return CCToken;
+            case 35:
+                return EvoTransactionId;
+            case 36:
+                return EvoApprovalCode;
+            case 37:
+                return EvoBatchId;
+            case 38:
+                return EvoServiceTransactionId;
         }
 
         return null;
@@ -143,7 +160,7 @@ public class AccountTransactions implements KvmSerializable {
     @Override
     public int getPropertyCount() {
         // TODO Auto-generated method stub
-        return 34;
+        return 39;
     }
 
     @Override
@@ -284,6 +301,26 @@ public class AccountTransactions implements KvmSerializable {
             case 33:
                 info.type = PropertyInfo.STRING_CLASS;
                 info.name = "CardHolderName";
+                break;
+            case 34:
+                info.type = PropertyInfo.STRING_CLASS;
+                info.name = "CCToken ";
+                break;
+            case 35:
+                info.type = PropertyInfo.STRING_CLASS;
+                info.name = "EvoTransactionId ";
+                break;
+            case 36:
+                info.type = PropertyInfo.STRING_CLASS;
+                info.name = "EvoApprovalCode  ";
+                break;
+            case 37:
+                info.type = PropertyInfo.STRING_CLASS;
+                info.name = "EvoBatchId";
+                break;
+            case 38:
+                info.type = PropertyInfo.STRING_CLASS;
+                info.name = "EvoServiceTransactionId ";
                 break;
             default:
                 break;
@@ -468,6 +505,41 @@ public class AccountTransactions implements KvmSerializable {
                     CardHolderName = "";
                 } else {
                     CardHolderName = value.toString();
+                }
+                break;
+            case 34:
+                if (value.equals("anyType{}")) {
+                    CCToken = "";
+                } else {
+                    CCToken = value.toString();
+                }
+                break;
+            case 35:
+                if (value.equals("anyType{}")) {
+                    EvoTransactionId = "";
+                } else {
+                    EvoTransactionId = value.toString();
+                }
+                break;
+            case 36:
+                if (value.equals("anyType{}")) {
+                    EvoApprovalCode = "";
+                } else {
+                    EvoApprovalCode = value.toString();
+                }
+                break;
+            case 37:
+                if (value.equals("anyType{}")) {
+                    EvoBatchId = "";
+                } else {
+                    EvoBatchId = value.toString();
+                }
+                break;
+            case 38:
+                if (value.equals("anyType{}")) {
+                    EvoServiceTransactionId = "";
+                } else {
+                    EvoServiceTransactionId = value.toString();
                 }
                 break;
             default:

@@ -30,7 +30,6 @@ public class StudentInformation extends ActionBarActivity implements ActionBar.T
         StudentClassFragment.OnStudentClassListener,
         StudentWaitListFragment.OnWaitListListener,
         StudentAttendanceFragment.OnAttendanceInteractionListener,
-        StudentEnrollFragment.OnStudentEnrollListener,
         StudentEnrollFragment.onEnrollDialog,
         RecordAttendanceFragment.OnRecordAttendanceInteractionListener,
         RecordAttendanceFragment.OnAttendanceDialogInteractionListener,
@@ -239,10 +238,6 @@ public class StudentInformation extends ActionBarActivity implements ActionBar.T
 
     }
 
-    @Override
-    public void onStudentEnrollInteraction(int classPosition, int newClRID) {
-
-    }
 
     @Override
     public void onEnrollDialog(SchoolClasses objSchoolClass, Student oStudent, ArrayList<String> conflicksArray,

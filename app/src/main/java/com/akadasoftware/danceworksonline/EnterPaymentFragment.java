@@ -164,7 +164,7 @@ public class EnterPaymentFragment extends Fragment {
     public void refreshEnterPayment() {
         chgid = 0;
         etDescription.setText("Payment");
-        tvChangeAmount.setText("0.00");
+        tvChangeAmount.setText("$0.00");
     }
 
     @Override
@@ -190,7 +190,7 @@ public class EnterPaymentFragment extends Fragment {
         tvChangeAmount.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mListener.onEditAmountDialog(tvChangeAmount.getText().toString());
+                mListener.onEditAmountDialog(tvChangeAmount.getText().toString().replace("$", ""));
             }
         });
 
@@ -216,12 +216,13 @@ public class EnterPaymentFragment extends Fragment {
             public void onClick(View view) {
                 if (tvChangeAmount.getText().toString().trim().length() > 0) {
                     Float floatAmount = Float.parseFloat(tvChangeAmount.getText().toString().replace("$", ""));
+                    //Float floatAmount = Float.parseFloat(tvChangeAmount.getText().toString().substring(1, tvChangeAmount.length()));
                     if (floatAmount == 0) {
-                        Toast toast = Toast.makeText(getActivity(), "Cannot enter a payment with an amount of $0 ",
+                        Toast toast = Toast.makeText(getActivity(), "Cannot enter a payment with an amount of $0.00 ",
                                 Toast.LENGTH_LONG);
                         toast.show();
                     } else if (etDescription.getText().toString().trim().length() == 0) {
-                        Toast toast = Toast.makeText(getActivity(), "Cannot enter a payment with a blank Description",
+                        Toast toast = Toast.makeText(getActivity(), "Cannot enter a payment with a blank description",
                                 Toast.LENGTH_LONG);
                         toast.show();
                     } else {
@@ -229,7 +230,7 @@ public class EnterPaymentFragment extends Fragment {
                         enter.execute();
                     }
                 } else {
-                    Toast toast = Toast.makeText(getActivity(), "Cannot enter a payment with an amount of $0 ",
+                    Toast toast = Toast.makeText(getActivity(), "Cannot enter a payment with an amount of $0.00 ",
                             Toast.LENGTH_LONG);
                     toast.show();
                 }
@@ -413,8 +414,11 @@ public class EnterPaymentFragment extends Fragment {
             Zip = oAccount.CCZip;
             POSTrans = false;
             sessionID = school.SessionID;
-            ccuser = school.CCUserName;
-            ccpass = school.CCPassword;
+            if (typeSpinner.getSelectedItemPosition() == 5) {
+                ccuser = school.CCUserName;
+                ccpass = school.CCPassword;
+            }
+
             ccMerch = school.CCMerchantNo;
             floCCMax = school.CCMaxAmt;
             chgid = _appPrefs.getChgID();

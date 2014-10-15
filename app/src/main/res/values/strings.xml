@@ -15,41 +15,39 @@
     <string name="show_password">Show Password</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_home">Home</string>
+
     <string name="title_accounts">Accounts</string>
     <string name="title_students">Students</string>
     <string name="title_classes">Classes</string>
+    <string name="title_my_classes">My Classes</string>
+
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="action_example">Example action</string>
     <string name="title_activity_account_information">Account Information</string>
     <string name="title_activity_student_information">Student Information</string>
-
     <string name="empty_student_list">No students registered to this account.</string>
+    <string name="empty_roster">No students on class roster.</string>
     <string name="empty_transaction_list">No transactions present on this account.</string>
-
     <string name="title_account_info">Information</string>
     <string name="title_account_students">Students</string>
     <string name="title_account_transactions">Transactions</string>
     <string name="title_account_payment">Payment</string>
     <string name="title_account_charge">Charge</string>
-
     <string name="title_student_info">Information</string>
     <string name="title_student_classes">Classes</string>
     <string name="title_student_waitlist">Waitlist</string>
     <string name="title_student_Attendance">Attendance</string>
     <string name="title_student_record_Attendance">Record Attendance</string>
     <string name="title_student_enroll">Enroll</string>
-
     <string name="title_activity_splash">Splash</string>
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_student">Student</string>
-
     <string name="class_information">Class Information</string>
     <string name="class_roster">Class Roster</string>
     <string name="class_wait_list">Class WaitList</string>
     <string name="class_attendance">Class Attendance</string>
     <string name="class_enroll">Class Enroll</string>
-
 
     <string-array name="payment_types1">
         <item>Select Charge Type</item>
@@ -131,5 +129,6 @@
     </string-array>
 
     <string name="title_activity_enroll">Enroll</string>
+    <string name="title_activity_class_listof_students">ClassListofStudents</string>
 
 </resources>

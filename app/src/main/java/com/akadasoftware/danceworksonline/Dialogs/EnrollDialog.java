@@ -38,7 +38,7 @@ public class EnrollDialog extends DialogFragment {
     }
 
     public interface EnrollDialogListener {
-        public void onEnrollDialogPositiveClick(SchoolClasses oSchoolClasses, int position);
+        public void onEnrollDialogPositiveClick(SchoolClasses oSchoolClasses, Student oStudent, int position);
 
         public void onEnrollDialogNuetralClick(SchoolClasses oSchoolClasses, Student oStudent
                 , int position);
@@ -58,6 +58,18 @@ public class EnrollDialog extends DialogFragment {
             throw new ClassCastException(activity.toString()
                     + " must implement EnrollDialogListener");
         }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        dismiss();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        dismiss();
     }
 
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -90,9 +102,8 @@ public class EnrollDialog extends DialogFragment {
         }
 
         Intent I = getActivity().getIntent();
-        ArrayList<String> conflictsArray = I.getStringArrayListExtra("Conflicks");
+        ArrayList<String> conflictsArray = I.getStringArrayListExtra("Conflicts");
 
-        final int intStuID = getActivity().getIntent().getIntExtra("StuID", 0);
         final int classPosition = getActivity().getIntent().getIntExtra("Position", 0);
 
         TextView tvConflicts = (TextView) view.findViewById(R.id.tvConflicks);
@@ -123,21 +134,21 @@ public class EnrollDialog extends DialogFragment {
 
         int arrayCount = conflictsArray.size();
 
-        String conflitMessage = "Do you want to enrol this student in the class listed below?";
+        String conflictMessage = "";
 
         if (arrayCount == 1)
-            conflitMessage = "The following class conflict with the class below";
-        else
-            conflitMessage = "The following Classes conflict with the class below";
+            conflictMessage = "The following class conflict with the class below";
+        else if (arrayCount > 1)
+            conflictMessage = "The following Classes conflict with the class below";
 
         for (int i = 0; i < arrayCount; i++) {
             if (conflictsArray.get(i).toString().equals("anyType{}"))
-                conflitMessage += "";
+                conflictMessage += "";
             else
-                conflitMessage += "\n" + conflictsArray.get(i).toString();
+                conflictMessage += "\n" + conflictsArray.get(i).toString();
 
         }
-        tvConflicts.setText(conflitMessage);
+        tvConflicts.setText(conflictMessage);
 
 
         String Day = "";
@@ -214,7 +225,7 @@ public class EnrollDialog extends DialogFragment {
                         .setPositiveButton("Enroll", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int id) {
-                                dialogListener.onEnrollDialogPositiveClick(objSchoolClasses, classPosition);
+                                dialogListener.onEnrollDialogPositiveClick(objSchoolClasses, objStudent, classPosition);
                             }
 
                         })
@@ -259,7 +270,7 @@ public class EnrollDialog extends DialogFragment {
                         .setPositiveButton("Enroll", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int id) {
-                                dialogListener.onEnrollDialogPositiveClick(objSchoolClasses, classPosition);
+                                dialogListener.onEnrollDialogPositiveClick(objSchoolClasses, objStudent, classPosition);
                             }
 
                         })
@@ -290,7 +301,7 @@ public class EnrollDialog extends DialogFragment {
                         .setPositiveButton("Enroll", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int id) {
-                                dialogListener.onEnrollDialogPositiveClick(objSchoolClasses, classPosition);
+                                dialogListener.onEnrollDialogPositiveClick(objSchoolClasses, objStudent, classPosition);
                             }
 
                         })

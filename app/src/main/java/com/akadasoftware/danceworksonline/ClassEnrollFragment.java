@@ -117,7 +117,7 @@ public class ClassEnrollFragment extends ListFragment {
         protected ArrayList<SchoolClasses> doInBackground(Globals.Data... data) {
 
 
-            return oGlobals.getClasses(_appPrefs, oSchool.SessionID, oStudent.StuID);
+            return oGlobals.getClasses(_appPrefs, oSchool.SessionID, oStudent.StuID, oUser.StaffID);
         }
 
         protected void onPostExecute(ArrayList<SchoolClasses> result) {

@@ -16,9 +16,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by Kyle on 4/2/2014.
+ * Created by Kyle on 8/6/2014.
  */
-public class StudentListAdapter extends ArrayAdapter<Student> {
+public class ClassStudentListAdapter extends ArrayAdapter<Student> {
 
 
     Activity activity;
@@ -26,7 +26,7 @@ public class StudentListAdapter extends ArrayAdapter<Student> {
     private int selectedPos;
     List<Student> Students;
 
-    public StudentListAdapter(Context context, int resource, ArrayList<Student> items) {
+    public ClassStudentListAdapter(Context context, int resource, ArrayList<Student> items) {
         super(context, resource, items);
         this.resource = resource;
         Students = items;
@@ -72,9 +72,9 @@ public class StudentListAdapter extends ArrayAdapter<Student> {
 
         holder.tvStudentInformation.setTextSize(20);
 
+
         return convertView;
 
     }
-
 
 }

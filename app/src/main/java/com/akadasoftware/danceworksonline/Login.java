@@ -73,6 +73,7 @@ public class Login extends ActionBarActivity {
         TextView tvError;
         String strEmail, strPassword;
         Globals oGlobals;
+        User oUser;
         int SessionID;
 
         public LoginFragment() {
@@ -164,7 +165,8 @@ public class Login extends ActionBarActivity {
 
             }
 
-            protected void onPostExecute(User oUser) {
+            protected void onPostExecute(User inputUser) {
+                oUser = inputUser;
                 if (oUser.UserID > 0) {
                     if (chkRemember.isChecked()) {
                         loginEditor.putBoolean("loggedin", true);
@@ -306,11 +308,12 @@ public class Login extends ActionBarActivity {
             protected ArrayList<SchoolClasses> doInBackground(Globals.Data... data) {
 
 
-                return oGlobals.getClasses(_appPrefs, SessionID, 0);
+                return oGlobals.getClasses(_appPrefs, SessionID, 0, 0);
             }
 
             protected void onPostExecute(ArrayList<SchoolClasses> result) {
                 _appPrefs.saveSchoolClassList(result);
+                _appPrefs.saveAccessAllClasses(false);
 
             }
         }

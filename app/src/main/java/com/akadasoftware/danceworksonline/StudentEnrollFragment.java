@@ -66,7 +66,7 @@ public class StudentEnrollFragment extends ListFragment {
     private SchoolClassAdapter classAdapter;
 
     private onEnrollDialog dialogListener;
-    private OnStudentEnrollListener enrollListener;
+    //private OnStudentEnrollListener enrollListener;
 
 
     public interface onEnrollDialog {
@@ -75,11 +75,11 @@ public class StudentEnrollFragment extends ListFragment {
                                    ArrayList<String> conflictsArray, int positionOfClass, SchoolClassAdapter classAdapter);
     }
 
-    public interface OnStudentEnrollListener {
-
-        public void onStudentEnrollInteraction(int classPosition, int newClRID);
-    }
-
+    /**
+     * Handles by enrolldialog
+     * public interface OnStudentEnrollListener {
+     * public void onStudentEnrollInteraction(int classPosition, int newClRID);  }
+     */
     public StudentEnrollFragment() {
     }
 
@@ -145,7 +145,7 @@ public class StudentEnrollFragment extends ListFragment {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
-            enrollListener = (OnStudentEnrollListener) activity;
+            //enrollListener = (OnStudentEnrollListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                     + " must implement onStudentEnrollInteraction");
@@ -162,7 +162,8 @@ public class StudentEnrollFragment extends ListFragment {
     @Override
     public void onDetach() {
         super.onDetach();
-        enrollListener = null;
+        //enrollListener = null;
+        dialogListener = null;
     }
 
 
@@ -258,7 +259,7 @@ public class StudentEnrollFragment extends ListFragment {
         protected ArrayList<SchoolClasses> doInBackground(Globals.Data... data) {
 
 
-            return oGlobals.getClasses(_appPrefs, SessionID, oStudent.StuID);
+            return oGlobals.getClasses(_appPrefs, SessionID, oStudent.StuID, oUser.StaffID);
         }
 
         protected void onPostExecute(ArrayList<SchoolClasses> result) {

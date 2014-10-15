@@ -1,5 +1,7 @@
 package com.akadasoftware.danceworksonline;
 
+import android.app.ProgressDialog;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -9,12 +11,19 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.widget.TimePicker;
+import android.widget.Toast;
 
+import com.akadasoftware.danceworksonline.Adapters.SchoolClassAdapter;
 import com.akadasoftware.danceworksonline.Classes.AppPreferences;
 import com.akadasoftware.danceworksonline.Classes.Globals;
+import com.akadasoftware.danceworksonline.Classes.SchoolClasses;
+import com.akadasoftware.danceworksonline.Classes.Student;
 import com.akadasoftware.danceworksonline.Dialogs.EditEndTimeDialog;
 import com.akadasoftware.danceworksonline.Dialogs.EditStartTimeDialog;
+import com.akadasoftware.danceworksonline.Dialogs.EnrollDialog;
+import com.google.gson.Gson;
 
+import java.util.ArrayList;
 import java.util.Locale;
 
 /**
@@ -26,13 +35,17 @@ public class ClassInformation extends ActionBarActivity implements ActionBar.Tab
         ClassRosterFragment.OnRosterInteractionListener,
         EditEndTimeDialog.EditStopTimeDialogListener,
         EditStartTimeDialog.EditTimeDialogListener,
-        ClassWaitListFragment.OnWaitListInteractionListener {
+        EnrollDialog.EnrollDialogListener,
+        ClassWaitListFragment.onEnrollDialog {
 
     ViewPager mViewPager;
     private AppPreferences _appPrefs;
     ClassPagerAdapter mSectionsPagerAdapter;
     String strSession;
     Globals oGlobals;
+    SchoolClasses globalSchoolClasses;
+    Student globalStudent;
+    int intClassPosition;
 
     /**
      * Uses the saved position from the onAccountSelected method in Home.java to fill an empty
@@ -41,10 +54,10 @@ public class ClassInformation extends ActionBarActivity implements ActionBar.Tab
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_student_information);
+        setContentView(R.layout.activity_class_information);
 
         _appPrefs = new AppPreferences(getApplicationContext());
-
+        oGlobals = new Globals();
         strSession = getIntent().getStringExtra("SessionName");
 
         // Set up the action bar.
@@ -57,7 +70,7 @@ public class ClassInformation extends ActionBarActivity implements ActionBar.Tab
 
         // Set up the ViewPager with the sections adapter. setOFfScreenPageLimit handles the number
         // of tabs that are preloaded
-        mViewPager = (ViewPager) findViewById(R.id.studentPager);
+        mViewPager = (ViewPager) findViewById(R.id.classPager);
         //How many adjacent pages it loads
         mViewPager.setOffscreenPageLimit(1);
         mViewPager.setAdapter(mSectionsPagerAdapter);
@@ -96,6 +109,7 @@ public class ClassInformation extends ActionBarActivity implements ActionBar.Tab
             );
         }
     }
+
 
     @Override
     public void onTabSelected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
@@ -198,10 +212,60 @@ public class ClassInformation extends ActionBarActivity implements ActionBar.Tab
 
     }
 
+
     @Override
-    public void onWaitListInteraction(String id) {
+    public void onEnrollDialog(SchoolClasses objSchoolClass, Student oStudent, ArrayList<String> conflictsArray, int positionOfClass, SchoolClassAdapter classAdapter) {
+        FragmentManager fm = getSupportFragmentManager();
+        EnrollDialog enrollDialog = new EnrollDialog();
+
+
+        SchoolClasses[] arraySchoolClasses = new SchoolClasses[1];
+        arraySchoolClasses[0] = objSchoolClass;
+
+        Student[] arrayStudents = new Student[1];
+        arrayStudents[0] = oStudent;
+
+        Gson gson = new Gson();
+        String strJsonSchoolClasses = gson.toJson(arraySchoolClasses);
+        String strStudent = gson.toJson(arrayStudents);
+
+        getIntent().putExtra("SchoolClasses", strJsonSchoolClasses);
+        getIntent().putExtra("Student", strStudent);
+        getIntent().putExtra("StuID", oStudent.StuID);
+        getIntent().putExtra("Position", positionOfClass);
+
+
+        getIntent().putStringArrayListExtra("Conflicts", conflictsArray);
+
+        //Just the name of the dialog. Has no effect on it.
+        enrollDialog.show(fm, "");
+    }
+
+    @Override
+    public void onEnrollDialogPositiveClick(SchoolClasses oSchoolClasses, Student oStudent, int position) {
+        globalSchoolClasses = oSchoolClasses;
+        globalStudent = oStudent;
+        intClassPosition = position;
+
+        EnrollStudentAsync enrollStudent = new EnrollStudentAsync();
+        enrollStudent.execute();
+
 
     }
+
+    @Override
+    public void onEnrollDialogNuetralClick(SchoolClasses oSchoolClasses, Student oStudent, int position) {
+        globalSchoolClasses = oSchoolClasses;
+        globalStudent = oStudent;
+        intClassPosition = position;
+
+
+        WaitListStudentAsync waitList = new WaitListStudentAsync();
+        waitList.execute();
+
+
+    }
+
 
     /**
      * A {@link android.support.v4.app.FragmentPagerAdapter} that returns a fragment corresponding to
@@ -234,11 +298,11 @@ public class ClassInformation extends ActionBarActivity implements ActionBar.Tab
                 case 2:
                     newFragment = ClassWaitListFragment.newInstance(listPosition);
                     break;
-                case 4:
-                    newFragment = ClassEnrollFragment.newInstance(listPosition);
+                case 3:
+                    newFragment = ClassAttendance.newInstance(listPosition);
                     break;
                 default:
-                    newFragment = StudentInformationFragment.newInstance(listPosition);
+                    newFragment = ClassInformationFragment.newInstance(listPosition, strSession);
                     break;
             }
 
@@ -247,7 +311,7 @@ public class ClassInformation extends ActionBarActivity implements ActionBar.Tab
 
         @Override
         public int getCount() {
-            return 5;
+            return 4;
         }
 
         //Tab titles
@@ -263,8 +327,6 @@ public class ClassInformation extends ActionBarActivity implements ActionBar.Tab
                     return getString(R.string.class_wait_list).toUpperCase(l);
                 case 3:
                     return getString(R.string.class_attendance).toUpperCase(l);
-                case 4:
-                    return getString(R.string.class_enroll).toUpperCase(l);
                 /**
                  * case 4:
                  return getString(R.string.title_student_enroll).toUpperCase(l);
@@ -276,5 +338,135 @@ public class ClassInformation extends ActionBarActivity implements ActionBar.Tab
         }
     }
 
+
+    /**
+     * Places student on waitlist
+     */
+    private class WaitListStudentAsync extends
+            AsyncTask<Globals.Data, Void, Integer> {
+
+        ProgressDialog progress;
+
+        protected void onPreExecute() {
+            //progress = ProgressDialog.show(ClassInformation.this, "Parsing the Internet", "Accessing WaitList...", true);
+        }
+
+        @Override
+        protected Integer doInBackground(Globals.Data... data) {
+            /**
+             * Placing student on waitlist
+             *
+             */
+            return oGlobals.placeStudentOnWaitList(_appPrefs, globalSchoolClasses, globalStudent);
+        }
+
+        protected void onPostExecute(Integer result) {
+            //progress.dismiss();
+            if (result > 0) {
+                Toast toast = Toast.makeText(ClassInformation.this, "The student was placed on the waitlist", Toast.LENGTH_LONG);
+                toast.show();
+                /**
+                 * Returns new WatiID
+                 */
+                globalSchoolClasses.WaitID = result;
+                globalSchoolClasses.EnrollmentStatus = 3;
+                globalSchoolClasses.ClWait = String.valueOf(Integer.valueOf(globalSchoolClasses.ClWait) + 1);
+
+                /**
+                 * Get Class list
+                 */
+                ArrayList<SchoolClasses> classesArray;
+                if (_appPrefs.getAccessAllClasses()) {
+                    classesArray = _appPrefs.getSchoolClassList();
+
+                    /**
+                     * Update class list with new class with updated variables
+                     */
+                    classesArray.set(intClassPosition, globalSchoolClasses);
+                    _appPrefs.saveSchoolClassList(classesArray);
+                } else {
+                    classesArray = _appPrefs.getMySchoolClassList();
+
+                    /**
+                     * Update class list with new class with updated variables
+                     */
+                    classesArray.set(intClassPosition, globalSchoolClasses);
+                    _appPrefs.saveMySchoolClassList(classesArray);
+                }
+
+            } else {
+                Toast toast = Toast.makeText(ClassInformation.this, "The student was not placed on the waitlist", Toast.LENGTH_LONG);
+                toast.show();
+            }
+        }
+
+    }
+
+    /**
+     * Enrolls a student in a class
+     *
+     * @return Integer greater than 0 means success
+     */
+    private class EnrollStudentAsync extends
+            AsyncTask<Globals.Data, Void, Integer> {
+
+        ProgressDialog progress;
+
+        protected void onPreExecute() {
+            //Causing problems going from one dialog to another
+            //progress = ProgressDialog.show(ClassInformation.this, "Enrolling Student", "Loading...", true);
+        }
+
+        @Override
+        protected Integer doInBackground(Globals.Data... data) {
+            /**
+             * Enrolling student in class, even if there are conflicts.
+             */
+            return oGlobals.enrollInClass(_appPrefs, globalStudent.StuID, globalSchoolClasses);
+        }
+
+        protected void onPostExecute(Integer result) {
+            //progress.dismiss();
+            if (result > 0) {
+                Toast toast = Toast.makeText(ClassInformation.this, "The student was enrolled in the class", Toast.LENGTH_LONG);
+                toast.show();
+
+                /**
+                 * Update ClRID and EnrollmentStatus
+                 */
+                globalSchoolClasses.ClRID = result;
+                globalSchoolClasses.EnrollmentStatus = 1;
+                globalSchoolClasses.ClCur += 1;
+                /**
+                 * Get Class list
+                 */
+                ArrayList<SchoolClasses> classesArray;
+                if (_appPrefs.getAccessAllClasses()) {
+                    classesArray = _appPrefs.getSchoolClassList();
+
+                    /**
+                     * Update class list with new class with updated variables
+                     */
+                    classesArray.set(intClassPosition, globalSchoolClasses);
+                    _appPrefs.saveSchoolClassList(classesArray);
+                } else {
+                    classesArray = _appPrefs.getMySchoolClassList();
+
+                    /**
+                     * Update class list with new class with updated variables
+                     */
+                    classesArray.set(intClassPosition, globalSchoolClasses);
+                    _appPrefs.saveMySchoolClassList(classesArray);
+
+                }
+
+
+            } else {
+                Toast toast = Toast.makeText(ClassInformation.this, "The student was not enrolled in the class", Toast.LENGTH_LONG);
+                toast.show();
+            }
+        }
+
+    }
 
 }

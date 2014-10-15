@@ -28,6 +28,7 @@ public class AppPreferences {
     public static final String putAccountListPosition = "AccountListPosition";
     public static final String putStudentListPosition = "StudentListPosition";
     public static final String putClassListPosition = "ClassListPosition";
+    public static final String putMyClassListPosition = "MyClassListPosition";
     public static final String putLogoName = "LogoName";
     public static final String putNavDrawerPosition = "NavDrawerPosition";
     public static final String putAccountQuery = "AccountQuery";
@@ -36,6 +37,7 @@ public class AppPreferences {
     public static final String putStudentsQuery = "StudentsQuery";
     public static final String putStudentsSortBy = "StudentsSortBy";
     public static final String putStudentsSelectBy = "StudentsSelectBy";
+    public static final String putAccessAllClasses = "AccessAllClasses";
     private SharedPreferences sharedPrefs;
     private SharedPreferences.Editor prefsEditor;
     Gson gson = new Gson();
@@ -301,6 +303,29 @@ public class AppPreferences {
         prefsEditor.commit();
     }
 
+    public ArrayList<SchoolClasses> getMySchoolClassList() {
+        ArrayList<SchoolClasses> schoolClasses = new ArrayList<SchoolClasses>();
+        jsonSchoolClasses = sharedPrefs.getString("MyClasses", "None found");
+        if (jsonSchoolClasses != "None found") {
+            JsonParser parser = new JsonParser();
+            JsonArray array = parser.parse(jsonSchoolClasses).getAsJsonArray();
+            for (int i = 0; i < array.size(); i++) {
+                SchoolClasses Class = gson.fromJson(array.get(i), SchoolClasses.class);
+                schoolClasses.add(Class);
+            }
+        }
+
+        return schoolClasses;
+
+    }
+
+    public void saveMySchoolClassList(ArrayList<SchoolClasses> classesArray) {
+        Gson gson = new Gson();
+        jsonSchoolClasses = gson.toJson(classesArray);
+        prefsEditor.putString("MyClasses", jsonSchoolClasses);
+        prefsEditor.commit();
+    }
+
 
     public User getUser() {
         User user = new User();
@@ -366,4 +391,12 @@ public class AppPreferences {
         prefsEditor.commit();
     }
 
+    public Boolean getAccessAllClasses() {
+        return sharedPrefs.getBoolean(putAccessAllClasses, true);
+    }
+
+    public void saveAccessAllClasses(Boolean putAll) {
+        prefsEditor.putBoolean(putAccessAllClasses, putAll);
+        prefsEditor.commit();
+    }
 }

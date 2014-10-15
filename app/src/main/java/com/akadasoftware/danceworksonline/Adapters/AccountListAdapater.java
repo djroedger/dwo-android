@@ -15,7 +15,6 @@ import android.widget.TextView;
 
 import com.akadasoftware.danceworksonline.Classes.Account;
 import com.akadasoftware.danceworksonline.R;
-import com.akadasoftware.danceworksonline.Classes.Account;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,17 +34,6 @@ public class AccountListAdapater extends ArrayAdapter<Account> {
         Accounts = items;
     }
 
-    public void setSelectedPosition(int pos) {
-
-        selectedPos = pos;
-
-        // inform the view of this change
-        notifyDataSetChanged();
-    }
-
-    public int getSelectedPosition() {
-        return selectedPos;
-    }
 
     public class ViewHolder {
         TextView tvAccountInformation;

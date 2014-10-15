@@ -205,11 +205,11 @@ public class EnterChargeFragment extends Fragment {
                 if (tvChangeAmount.getText().toString().trim().length() > 0) {
                     Float floatAmount = Float.parseFloat(tvChangeAmount.getText().toString().substring(1, tvChangeAmount.length()));
                     if (floatAmount == 0) {
-                        Toast toast = Toast.makeText(getActivity(), "Cannot enter a charge with an amount of $0 ",
+                        Toast toast = Toast.makeText(getActivity(), "Cannot enter a charge with an amount of $0.00 ",
                                 Toast.LENGTH_LONG);
                         toast.show();
                     } else if (etDescription.getText().toString().trim().length() == 0) {
-                        Toast toast = Toast.makeText(getActivity(), "Cannot enter a charge with a blank Description",
+                        Toast toast = Toast.makeText(getActivity(), "Cannot enter a charge with a blank description",
                                 Toast.LENGTH_LONG);
                         toast.show();
                     } else {
@@ -217,7 +217,7 @@ public class EnterChargeFragment extends Fragment {
                         enter.execute();
                     }
                 } else {
-                    Toast toast = Toast.makeText(getActivity(), "Cannot enter a charge with an amount of $0 ",
+                    Toast toast = Toast.makeText(getActivity(), "Cannot enter a charge with an amount of $0.00 ",
                             Toast.LENGTH_LONG);
                     toast.show();
                 }
@@ -236,11 +236,12 @@ public class EnterChargeFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 if (ChargeCodeSpinner.getSelectedItemPosition() == 0) {
-                    Toast toast = Toast.makeText(getActivity(), "Please select a charge type. ",
+                    Toast toast = Toast.makeText(getActivity(), "Please select a charge type.",
                             Toast.LENGTH_LONG);
                     toast.show();
                 } else
-                    mListener.onEditAmountDialog(tvChangeAmount.getText().toString().substring(1, tvChangeAmount.length()));
+                    mListener.onEditAmountDialog(tvChangeAmount.getText().toString().replace("$", ""));
+                //mListener.onEditAmountDialog(tvChangeAmount.getText().toString());
             }
         });
 
@@ -429,6 +430,7 @@ public class EnterChargeFragment extends Fragment {
         int selected = spinnerChargeCode.getSelectedItemPosition();
         oChargeCodes = (ChargeCodes) spinnerChargeCode.getItemAtPosition(selected);
 
+        NumberFormat nf = NumberFormat.getCurrencyInstance();
 
         if (oChargeCodes.ChgID == 0) {
             tvChangeAmount.setText("$0.00");
@@ -520,10 +522,10 @@ public class EnterChargeFragment extends Fragment {
         RequestCodes.addProperty(piChgID);
 
 
-        PropertyInfo piAcctid = new PropertyInfo();
-        piAcctid.setName("AcctID");
-        piAcctid.setValue(AcctID);
-        RequestCodes.addProperty(piAcctid);
+        PropertyInfo piAcctID = new PropertyInfo();
+        piAcctID.setName("AcctID");
+        piAcctID.setValue(AcctID);
+        RequestCodes.addProperty(piAcctID);
 
         PropertyInfo piBillingFreq = new PropertyInfo();
         piBillingFreq.setName("BillingFreq");
@@ -562,6 +564,7 @@ public class EnterChargeFragment extends Fragment {
 
         SoapSerializationEnvelope envelopeCodes = new SoapSerializationEnvelope(
                 SoapEnvelope.VER11);
+
         MarshalFloat mf = new MarshalFloat();
         mf.register(envelopeCodes);
 
@@ -605,10 +608,7 @@ public class EnterChargeFragment extends Fragment {
         ProgressDialog dialog;
 
         protected void onPreExecute() {
-            dialog = new ProgressDialog(activity);
-            dialog.setProgress(ProgressDialog.STYLE_HORIZONTAL);
-            dialog.setMax(100);
-            dialog.show();
+            dialog = ProgressDialog.show(activity, "Entering Charge", "Loading...", true);
         }
 
         @Override
@@ -635,11 +635,6 @@ public class EnterChargeFragment extends Fragment {
                     floatSTax1, floatSTax2, user.DisplayName);
             return EnterChargeFromSoap(enterCharge);
 
-
-        }
-
-        protected void onProgressUpdate(Integer... progress) {
-            dialog.incrementProgressBy(progress[0]);
 
         }
 
@@ -782,6 +777,7 @@ public class EnterChargeFragment extends Fragment {
 
         SoapSerializationEnvelope envelopeEnterCharge = new SoapSerializationEnvelope(
                 SoapEnvelope.VER11);
+
         MarshalFloat mf = new MarshalFloat();
         mf.register(envelopeEnterCharge);
 

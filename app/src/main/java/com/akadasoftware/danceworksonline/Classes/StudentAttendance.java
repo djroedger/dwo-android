@@ -10,7 +10,7 @@ import java.util.Hashtable;
  */
 public class StudentAttendance implements KvmSerializable {
 
-    public int ClAID, ClDayNo, ClID;
+    public int ClAID, ClDayNo, ClID, StuID, SessionID, SchID, AcctID;
 
     public String ClType, ClLevel, ClDescription, ClStart, ADate, Present;
 
@@ -21,7 +21,7 @@ public class StudentAttendance implements KvmSerializable {
 
     public StudentAttendance(int claid, Boolean multiday, int cldayno, int clid, String cltype,
                              String cllevel, String cldescription, String clstart, String adate,
-                             String present) {
+                             String present, int stuid, int sessionid, int schid, int acctid) {
 
         claid = ClAID;
         multiday = MultiDay;
@@ -33,6 +33,10 @@ public class StudentAttendance implements KvmSerializable {
         clstart = ClStart;
         adate = ADate;
         present = Present;
+        stuid = StuID;
+        sessionid = SessionID;
+        schid = SchID;
+        acctid = AcctID;
     }
 
     @Override
@@ -58,13 +62,21 @@ public class StudentAttendance implements KvmSerializable {
                 return ADate;
             case 9:
                 return Present;
+            case 10:
+                return StuID;
+            case 11:
+                return SessionID;
+            case 12:
+                return SchID;
+            case 13:
+                return AcctID;
         }
         return null;
     }
 
     @Override
     public int getPropertyCount() {
-        return 10;
+        return 14;
     }
 
     @Override
@@ -109,6 +121,22 @@ public class StudentAttendance implements KvmSerializable {
             case 9:
                 info.type = PropertyInfo.STRING_CLASS;
                 info.name = "Present";
+                break;
+            case 10:
+                info.type = PropertyInfo.INTEGER_CLASS;
+                info.name = "StuID";
+                break;
+            case 11:
+                info.type = PropertyInfo.INTEGER_CLASS;
+                info.name = "SessionID";
+                break;
+            case 12:
+                info.type = PropertyInfo.INTEGER_CLASS;
+                info.name = "SchID";
+                break;
+            case 13:
+                info.type = PropertyInfo.INTEGER_CLASS;
+                info.name = "AcctID";
                 break;
         }
     }
@@ -168,6 +196,18 @@ public class StudentAttendance implements KvmSerializable {
                 } else {
                     Present = value.toString();
                 }
+                break;
+            case 10:
+                StuID = Integer.parseInt(value.toString());
+                break;
+            case 11:
+                SessionID = Integer.parseInt(value.toString());
+                break;
+            case 12:
+                SchID = Integer.parseInt(value.toString());
+                break;
+            case 13:
+                AcctID = Integer.parseInt(value.toString());
                 break;
             default:
                 break;

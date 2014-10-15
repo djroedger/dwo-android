@@ -11,7 +11,6 @@ import android.widget.TextView;
 
 import com.akadasoftware.danceworksonline.Classes.Session;
 import com.akadasoftware.danceworksonline.R;
-import com.akadasoftware.danceworksonline.Classes.Session;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,32 +1,36 @@
 package com.akadasoftware.danceworksonline.Classes;
 
+
 import org.ksoap2.serialization.KvmSerializable;
 import org.ksoap2.serialization.PropertyInfo;
 
 import java.util.Hashtable;
 
 /**
- * Created by Kyle on 4/9/2014.
+ * Created by Kyle on 5/21/2014.
  */
-public class StudentClasses implements KvmSerializable {
+public class SchoolClasses implements KvmSerializable {
 
-    public int ClID, Length, ClTchID, ClLAge, ClUAge, ClCur, ClMax;
+    public int ClID, ClLength, ClTchID, ClLAge, ClUAge, ClCur, ClMax, EnrollmentStatus, WaitID, ClRID,
+            SessionID;
 
-    public float Tuition, Discount;
+    public float ClTuition;
 
-    public Boolean Recital, Edit, MultiDay, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday;
+    public Boolean MultiDay, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday;
 
-    public String ClType, ClLevel, ClRoom, ClDay, ClDescription, ClStart, ClStop, ClInstructor, ClKey, ClWait;
+    public String ClType, ClLevel, ClRoom, ClDay, ClDescription, ClStart, ClStop, ClTime,
+            ClInstructor, ClKey, ClWait, ClDayNo;
 
-    public StudentClasses() {
+    public SchoolClasses() {
     }
 
-    public StudentClasses(int clid, String cltype, String cllevel, String clroom, String clday,
-                          String cldescription, String clstart, String clstop, String clinstructor,
-                          float tuition, Boolean recital, Boolean edit, int length, int cltchid, Boolean multiday,
-                          Boolean monday, Boolean tuesday, Boolean wednesday, Boolean thursday, Boolean friday,
-                          Boolean saturday, Boolean sunday, int cllage, int cluage, String clkey, int clcur, int clmax,
-                          String clwait, float discount) {
+    public SchoolClasses(int clid, String cltype, String cllevel, String clroom, String clday,
+                         String cldescription, String clstart, String clstop, String cltime,
+                         String clinstructor, float cltuition, int cllength, int cltchid, Boolean multiday,
+                         Boolean monday, Boolean tuesday, Boolean wednesday, Boolean thursday, Boolean friday,
+                         Boolean saturday, Boolean sunday, int cllage, int cluage, String clkey, int clcur, int clmax,
+                         String clwait, String cldayno, int enrollmentstatus, int waitid, int clrid,
+                         int sessionid) {
 
         clid = ClID;
         cltype = ClType;
@@ -36,11 +40,10 @@ public class StudentClasses implements KvmSerializable {
         cldescription = ClDescription;
         clstart = ClStart;
         clstop = ClStop;
+        cltime = ClTime;
         clinstructor = ClInstructor;
-        tuition = Tuition;
-        recital = Recital;
-        edit = Edit;
-        length = Length;
+        cltuition = ClTuition;
+        cllength = ClLength;
         cltchid = ClTchID;
         multiday = MultiDay;
         monday = Monday;
@@ -56,7 +59,12 @@ public class StudentClasses implements KvmSerializable {
         clcur = ClCur;
         clmax = ClMax;
         clwait = ClWait;
-        discount = Discount;
+        cldayno = ClDayNo;
+        enrollmentstatus = EnrollmentStatus;
+        waitid = WaitID;
+        clrid = ClRID;
+        sessionid = SessionID;
+
 
     }
 
@@ -81,48 +89,56 @@ public class StudentClasses implements KvmSerializable {
             case 7:
                 return ClStop;
             case 8:
-                return ClInstructor;
+                return ClTime;
             case 9:
-                return Tuition;
+                return ClInstructor;
             case 10:
-                return Recital;
+                return ClTuition;
             case 11:
-                return Edit;
+                return ClLength;
             case 12:
-                return Length;
-            case 13:
                 return ClTchID;
-            case 14:
+            case 13:
                 return MultiDay;
-            case 15:
+            case 14:
                 return Monday;
-            case 16:
+            case 15:
                 return Tuesday;
-            case 17:
+            case 16:
                 return Wednesday;
-            case 18:
+            case 17:
                 return Thursday;
-            case 19:
+            case 18:
                 return Friday;
-            case 20:
+            case 19:
                 return Saturday;
-            case 21:
+            case 20:
                 return Sunday;
-            case 22:
+            case 21:
                 return ClLAge;
-            case 23:
+            case 22:
                 return ClUAge;
-            case 24:
+            case 23:
                 return ClKey;
-            case 25:
+            case 24:
                 return ClCur;
-            case 26:
+            case 25:
                 return ClMax;
-            case 27:
+            case 26:
                 return ClWait;
+            case 27:
+                return ClDayNo;
             case 28:
-                return Discount;
+                return ClRID;
+            case 29:
+                return WaitID;
+            case 30:
+                return EnrollmentStatus;
+            case 31:
+                return SessionID;
+
         }
+
 
         return null;
     }
@@ -130,7 +146,7 @@ public class StudentClasses implements KvmSerializable {
     @Override
     public int getPropertyCount() {
         // TODO Auto-generated method stub
-        return 29;
+        return 32;
     }
 
     @Override
@@ -141,7 +157,7 @@ public class StudentClasses implements KvmSerializable {
                 info.name = "ClID";
                 break;
             case 1:
-                info.type = PropertyInfo.INTEGER_CLASS;
+                info.type = PropertyInfo.STRING_CLASS;
                 info.name = "ClType";
                 break;
             case 2:
@@ -149,7 +165,7 @@ public class StudentClasses implements KvmSerializable {
                 info.name = "ClLevel";
                 break;
             case 3:
-                info.type = PropertyInfo.INTEGER_CLASS;
+                info.type = PropertyInfo.STRING_CLASS;
                 info.name = "ClRoom";
                 break;
             case 4:
@@ -170,88 +186,99 @@ public class StudentClasses implements KvmSerializable {
                 break;
             case 8:
                 info.type = PropertyInfo.STRING_CLASS;
-                info.name = "ClInstructor";
+                info.name = "ClTime";
                 break;
             case 9:
                 info.type = PropertyInfo.STRING_CLASS;
-                info.name = "Tuition";
+                info.name = "ClInstructor";
                 break;
             case 10:
                 info.type = PropertyInfo.STRING_CLASS;
-                info.name = "Recital";
+                info.name = "ClTuition";
                 break;
             case 11:
-                info.type = PropertyInfo.STRING_CLASS;
-                info.name = "Edit";
+                info.type = PropertyInfo.INTEGER_CLASS;
+                info.name = "ClLength";
                 break;
             case 12:
-                info.type = PropertyInfo.STRING_CLASS;
-                info.name = "Length";
-                break;
-            case 13:
-                info.type = PropertyInfo.STRING_CLASS;
+                info.type = PropertyInfo.INTEGER_CLASS;
                 info.name = "ClTchID";
                 break;
-            case 14:
-                info.type = PropertyInfo.STRING_CLASS;
+            case 13:
+                info.type = PropertyInfo.BOOLEAN_CLASS;
                 info.name = "MultiDay";
                 break;
-            case 15:
-                info.type = PropertyInfo.STRING_CLASS;
+            case 14:
+                info.type = PropertyInfo.BOOLEAN_CLASS;
                 info.name = "Monday";
                 break;
-            case 16:
-                info.type = PropertyInfo.STRING_CLASS;
+            case 15:
+                info.type = PropertyInfo.BOOLEAN_CLASS;
                 info.name = "Tuesday";
                 break;
-            case 17:
-                info.type = PropertyInfo.STRING_CLASS;
+            case 16:
+                info.type = PropertyInfo.BOOLEAN_CLASS;
                 info.name = "Wednesday";
                 break;
-            case 18:
-                info.type = PropertyInfo.STRING_CLASS;
+            case 17:
+                info.type = PropertyInfo.BOOLEAN_CLASS;
                 info.name = "Thursday";
                 break;
-            case 19:
-                info.type = PropertyInfo.STRING_CLASS;
+            case 18:
+                info.type = PropertyInfo.BOOLEAN_CLASS;
                 info.name = "Friday";
                 break;
-            case 20:
+            case 19:
                 info.type = PropertyInfo.BOOLEAN_CLASS;
                 info.name = "Saturday";
                 break;
-            case 21:
-                info.type = PropertyInfo.INTEGER_CLASS;
+            case 20:
+                info.type = PropertyInfo.BOOLEAN_CLASS;
                 info.name = "Sunday";
                 break;
-            case 22:
-                info.type = PropertyInfo.BOOLEAN_CLASS;
+            case 21:
+                info.type = PropertyInfo.INTEGER_CLASS;
                 info.name = "ClLAge";
                 break;
-            case 23:
-                info.type = PropertyInfo.BOOLEAN_CLASS;
+            case 22:
+                info.type = PropertyInfo.INTEGER_CLASS;
                 info.name = "ClUAge";
+                break;
+            case 23:
+                info.type = PropertyInfo.STRING_CLASS;
+                info.name = "ClKey";
                 break;
             case 24:
                 info.type = PropertyInfo.INTEGER_CLASS;
-                info.name = "ClKey";
+                info.name = "ClCur";
                 break;
             case 25:
                 info.type = PropertyInfo.INTEGER_CLASS;
-                info.name = "ClCur";
+                info.name = "ClMax";
                 break;
             case 26:
                 info.type = PropertyInfo.STRING_CLASS;
-                info.name = "ClMax";
-                break;
-            case 27:
-                info.type = PropertyInfo.INTEGER_CLASS;
                 info.name = "ClWait";
                 break;
-            case 28:
+            case 27:
                 info.type = PropertyInfo.STRING_CLASS;
-                info.name = "Discount";
+                info.name = "ClDayNo";
                 break;
+            case 28:
+                info.type = PropertyInfo.INTEGER_CLASS;
+                info.name = "ClRID";
+                break;
+            case 29:
+                info.type = PropertyInfo.INTEGER_CLASS;
+                info.name = "WaitID";
+                break;
+            case 30:
+                info.type = PropertyInfo.INTEGER_CLASS;
+                info.name = "EnrollmentStatus";
+            case 31:
+                info.type = PropertyInfo.INTEGER_CLASS;
+                info.name = "SessionID";
+
             default:
                 break;
         }
@@ -315,77 +342,94 @@ public class StudentClasses implements KvmSerializable {
                 break;
             case 8:
                 if (value.equals("anyType{}")) {
+                    ClTime = "";
+                } else {
+                    ClTime = value.toString();
+                }
+                break;
+            case 9:
+                if (value.equals("anyType{}")) {
                     ClInstructor = "";
                 } else {
                     ClInstructor = value.toString();
                 }
                 break;
-            case 9:
-                Tuition = Float.parseFloat(value.toString());
-                break;
             case 10:
-                Recital = Boolean.parseBoolean(value.toString());
+                ClTuition = Float.parseFloat(value.toString());
                 break;
             case 11:
-                Edit = Boolean.parseBoolean(value.toString());
+                ClLength = Integer.parseInt(value.toString());
                 break;
             case 12:
-                Length = Integer.parseInt(value.toString());
-                break;
-            case 13:
                 ClTchID = Integer.parseInt(value.toString());
                 break;
-            case 14:
+            case 13:
                 MultiDay = Boolean.parseBoolean(value.toString());
                 break;
-            case 15:
+            case 14:
                 Monday = Boolean.parseBoolean(value.toString());
                 break;
-            case 16:
+            case 15:
                 Tuesday = Boolean.parseBoolean(value.toString());
                 break;
-            case 17:
+            case 16:
                 Wednesday = Boolean.parseBoolean(value.toString());
                 break;
-            case 18:
+            case 17:
                 Thursday = Boolean.parseBoolean(value.toString());
                 break;
-            case 19:
+            case 18:
                 Friday = Boolean.parseBoolean(value.toString());
                 break;
-            case 20:
+            case 19:
                 Saturday = Boolean.parseBoolean(value.toString());
                 break;
-            case 21:
+            case 20:
                 Sunday = Boolean.parseBoolean(value.toString());
                 break;
-            case 22:
+            case 21:
                 ClLAge = Integer.parseInt(value.toString());
                 break;
-            case 23:
+            case 22:
                 ClUAge = Integer.parseInt(value.toString());
                 break;
-            case 24:
+            case 23:
                 if (value.equals("anyType{}")) {
                     ClKey = "";
                 } else {
                     ClKey = value.toString();
                 }
                 break;
-            case 25:
+            case 24:
                 ClCur = Integer.parseInt(value.toString());
                 break;
-            case 26:
+            case 25:
                 ClMax = Integer.parseInt(value.toString());
                 break;
-            case 27:
+            case 26:
                 if (value.equals("anyType{}")) {
                     ClWait = "";
                 } else {
                     ClWait = value.toString();
                 }
+            case 27:
+                if (value.equals("anyType{}")) {
+                    ClDayNo = "";
+                } else {
+                    ClDayNo = value.toString();
+                }
+                break;
             case 28:
-                Discount = Float.parseFloat(value.toString());
+                ClRID = Integer.parseInt(value.toString());
+                break;
+            case 29:
+                WaitID = Integer.parseInt(value.toString());
+                break;
+            case 30:
+                EnrollmentStatus = Integer.parseInt(value.toString());
+                break;
+            case 31:
+                SessionID = Integer.parseInt(value.toString());
                 break;
             default:
                 break;

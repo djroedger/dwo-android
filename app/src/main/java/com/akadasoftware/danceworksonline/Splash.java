@@ -337,11 +337,12 @@ public class Splash extends ActionBarActivity {
         protected ArrayList<SchoolClasses> doInBackground(Globals.Data... data) {
 
 
-            return oGlobals.getClasses(_appPrefs, SessionID, 0);
+            return oGlobals.getClasses(_appPrefs, SessionID, 0, 0);
         }
 
         protected void onPostExecute(ArrayList<SchoolClasses> result) {
             _appPrefs.saveSchoolClassList(result);
+            _appPrefs.saveAccessAllClasses(false);
 
         }
     }

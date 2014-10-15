@@ -14,7 +14,7 @@ import android.widget.Toast;
 
 import com.akadasoftware.danceworksonline.Classes.AppPreferences;
 import com.akadasoftware.danceworksonline.Classes.Globals;
-import com.akadasoftware.danceworksonline.Classes.Student;
+import com.akadasoftware.danceworksonline.Classes.SchoolClasses;
 import com.akadasoftware.danceworksonline.Classes.StudentAttendance;
 import com.akadasoftware.danceworksonline.Classes.User;
 import com.squareup.timessquare.CalendarPickerView;
@@ -33,104 +33,62 @@ import java.util.Date;
 
 
 /**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link RecordAttendanceFragment.OnRecordAttendanceInteractionListener} interface
- * to handle interaction events.
- * Use the {@link RecordAttendanceFragment#newInstance} factory method to
- * create an instance of this fragment.
+ * Created by Kyle on 8/4/2014.
  */
-public class RecordAttendanceFragment extends Fragment {
+public class ClassAttendance extends Fragment {
 
-
-    Student oStudent;
-    Globals oGlobal;
     Activity activity;
-    private AppPreferences _appPrefs;
-
-    ArrayList<StudentAttendance> studentAttenanceArray = new ArrayList<StudentAttendance>();
-
-    ArrayList<Student> students = new ArrayList<Student>();
-
-    StudentAttendance oClassChoosen;
-
-
-    int intMonth, intCurrentYear, position, SessionID;
-
-    SeekBar seekBar;
-
-    Button btnPreviousYear, btnNextYear;
-
-    Calendar thisMonth, nextMonth;
-
-    CalendarPickerView calendarPicker;
+    Globals oGlobals;
+    ArrayList<SchoolClasses> schoolClassList;
+    ArrayList<StudentAttendance> classAttendanceArray = new ArrayList<StudentAttendance>();
     ArrayList<Date> dates;
+    SchoolClasses oSchoolClass;
+    User oUser;
+
+    int position, intMonth, intCurrentYear;
 
     SimpleDateFormat dateFormat;
 
-    private OnRecordAttendanceInteractionListener mListener;
-    private OnAttendanceDialogInteractionListener aListener;
+    private AppPreferences _appPrefs;
 
+    Calendar thisMonth, nextMonth;
 
-    public static RecordAttendanceFragment newInstance(int position) {
-        RecordAttendanceFragment fragment = new RecordAttendanceFragment();
+    SeekBar classSeekBar;
+    CalendarPickerView classCalendarPicker;
+    Button btnPreviousYear, btnNextYear;
+
+    public static ClassAttendance newInstance(int position) {
+        ClassAttendance fragment = new ClassAttendance();
         Bundle args = new Bundle();
         args.putInt("Position", position);
         fragment.setArguments(args);
         return fragment;
     }
 
-    public RecordAttendanceFragment() {
-        // Required empty public constructor
-    }
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        try {
-            mListener = (OnRecordAttendanceInteractionListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement onRecordFragmentInteraction");
-        }
-        try {
-            aListener = (OnAttendanceDialogInteractionListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnAttendanceDialogInteractionListener");
-        }
-    }
-
-
-    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         activity = getActivity();
+
+
+        oGlobals = new Globals();
         _appPrefs = new AppPreferences(activity);
-
-
-        students = _appPrefs.getStudents();
         position = getArguments().getInt("Position");
 
-        oStudent = students.get(position);
-        oGlobal = new Globals();
+        schoolClassList = _appPrefs.getSchoolClassList();
+        oSchoolClass = schoolClassList.get(position);
+        oUser = _appPrefs.getUser();
         dateFormat = new SimpleDateFormat("MM/dd/yyyy");
-
-
     }
 
+    //Create the view
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View rootView = inflater.inflate(R.layout.fragment_class_attendance, container, false);
 
-        // Inflate the layout for this fragment
-        View rootView = inflater.inflate(R.layout.fragment_record_attendance, container, false);
-
-        seekBar = (SeekBar) rootView.findViewById(R.id.seekBar);
+        classSeekBar = (SeekBar) rootView.findViewById(R.id.classSeekBar);
         btnPreviousYear = (Button) rootView.findViewById(R.id.btnPreviousYear);
         btnNextYear = (Button) rootView.findViewById(R.id.btnNextYear);
-        calendarPicker = (CalendarPickerView) rootView.findViewById(R.id.calendar_view);
-
+        classCalendarPicker = (CalendarPickerView) rootView.findViewById(R.id.classCalendarPicker);
 
         nextMonth = Calendar.getInstance();
         nextMonth.set(Calendar.DAY_OF_MONTH, 1);
@@ -146,16 +104,13 @@ public class RecordAttendanceFragment extends Fragment {
 
 
         intMonth = thisMonth.get(Calendar.MONTH);
-        seekBar.setProgress(intMonth);
+        classSeekBar.setProgress(intMonth);
 
         dates = new ArrayList<Date>();
-
-
-        calendarPicker.init(thisMonth.getTime(), nextMonth.getTime()).inMode(CalendarPickerView.SelectionMode.MULTIPLE)
+        classCalendarPicker.init(thisMonth.getTime(), nextMonth.getTime()).inMode(CalendarPickerView.SelectionMode.MULTIPLE)
                 .withSelectedDates(dates);
 
-
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        classSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 
@@ -173,17 +128,17 @@ public class RecordAttendanceFragment extends Fragment {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                getCompleteStudentAttendanceAsync getAttendance = new getCompleteStudentAttendanceAsync();
+                getCompleteClassAttendanceAsync getAttendance = new getCompleteClassAttendanceAsync();
                 getAttendance.execute();
 
             }
         });
 
 
-        calendarPicker.setOnDateSelectedListener(new CalendarPickerView.OnDateSelectedListener() {
+        classCalendarPicker.setOnDateSelectedListener(new CalendarPickerView.OnDateSelectedListener() {
             @Override
             public void onDateSelected(Date date) {
-                calendarPicker.selectDate(date);
+                classCalendarPicker.selectDate(date);
                 Toast toast = Toast.makeText(getActivity(), "Invalid date.", Toast.LENGTH_SHORT);
                 toast.show();
 
@@ -191,19 +146,7 @@ public class RecordAttendanceFragment extends Fragment {
 
             @Override
             public void onDateUnselected(Date date) {
-                calendarPicker.selectDate(date);
-                for (int i = 0; i < studentAttenanceArray.size(); i++) {
-                    try {
-                        if (dateFormat.parse(studentAttenanceArray.get(i).ADate).getTime() == date.getTime())
-                            oClassChoosen = studentAttenanceArray.get(i);
-                        Toast toast = Toast.makeText(getActivity(), "Yay", Toast.LENGTH_SHORT);
-                        toast.show();
-                    } catch (ParseException e) {
 
-                    }
-
-                }
-                aListener.onAttendanceDialogInteraction(oClassChoosen);
                 Toast toast = Toast.makeText(getActivity(), "Date already selected.", Toast.LENGTH_SHORT);
                 toast.show();
             }
@@ -221,10 +164,11 @@ public class RecordAttendanceFragment extends Fragment {
 
                 thisMonth.set(Calendar.MONTH, 0);
                 nextMonth.set(Calendar.MONTH, 1);
+                classSeekBar.setProgress(0);
 
-                seekBar.setProgress(0);
-                getCompleteStudentAttendanceAsync getAttendance = new getCompleteStudentAttendanceAsync();
+                getCompleteClassAttendanceAsync getAttendance = new getCompleteClassAttendanceAsync();
                 getAttendance.execute();
+
             }
         });
 
@@ -240,58 +184,35 @@ public class RecordAttendanceFragment extends Fragment {
 
                 thisMonth.set(Calendar.MONTH, 0);
                 nextMonth.set(Calendar.MONTH, 1);
+                classSeekBar.setProgress(0);
 
-                seekBar.setProgress(0);
-                getCompleteStudentAttendanceAsync getAttendance = new getCompleteStudentAttendanceAsync();
+                getCompleteClassAttendanceAsync getAttendance = new getCompleteClassAttendanceAsync();
                 getAttendance.execute();
+
+
             }
         });
 
-
         return rootView;
-    }
 
+    }
 
     public void onResume() {
         super.onResume();
 
-        getCompleteStudentAttendanceAsync getAttendance = new getCompleteStudentAttendanceAsync();
+        getCompleteClassAttendanceAsync getAttendance = new getCompleteClassAttendanceAsync();
         getAttendance.execute();
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
-        aListener = null;
     }
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnRecordAttendanceInteractionListener {
-        // TODO: Update argument type and name
-        public void onRecordFragmentInteraction();
-    }
-
-
-    public interface OnAttendanceDialogInteractionListener {
-        public void onAttendanceDialogInteraction(StudentAttendance oStudentAttendance);
-
-    }
-
 
     /**
      * Get's the Student's attendance record
      */
-    public class getCompleteStudentAttendanceAsync extends
+    public class getCompleteClassAttendanceAsync extends
             AsyncTask<Globals.Data, Void, ArrayList<StudentAttendance>> {
         ProgressDialog progress;
 
@@ -302,21 +223,21 @@ public class RecordAttendanceFragment extends Fragment {
         @Override
         protected ArrayList<StudentAttendance> doInBackground(Globals.Data... data) {
 
-            return getCompleteAttendance();
+            return getCompleteClassAttendance();
         }
 
         protected void onPostExecute(ArrayList<StudentAttendance> result) {
             progress.dismiss();
-            studentAttenanceArray = result;
+            classAttendanceArray = result;
 
-            updateDateArray(studentAttenanceArray, dates);
+            updateDateArray(classAttendanceArray, dates);
 
         }
     }
 
 
-    public ArrayList<StudentAttendance> getCompleteAttendance() {
-        String MethodName = "getCombinedStudentAttendance";
+    public ArrayList<StudentAttendance> getCompleteClassAttendance() {
+        String MethodName = "getCombinedClassAttendance";
         SoapObject response = InvokeCompleteAttendanceMethod(Globals.Data.URL, MethodName);
         return RetrieveCompleteAttendanceFromSoap(response);
 
@@ -327,6 +248,7 @@ public class RecordAttendanceFragment extends Fragment {
         SoapObject request = GetSoapObject(MethodName);
 
         User oUser = _appPrefs.getUser();
+
         int selectedMonth = thisMonth.get(Calendar.MONTH);
         int selectedYear = thisMonth.get(Calendar.YEAR);
 
@@ -351,20 +273,16 @@ public class RecordAttendanceFragment extends Fragment {
         piYear.setValue(selectedYear);
         request.addProperty(piYear);
 
-        PropertyInfo piStuID = new PropertyInfo();
-        piStuID.setName("StuID");
-        piStuID.setValue(oStudent.StuID);
-        request.addProperty(piStuID);
+        PropertyInfo piClID = new PropertyInfo();
+        piClID.setName("intClID");
+        piClID.setValue(oSchoolClass.ClID);
+        request.addProperty(piClID);
 
         PropertyInfo piSchID = new PropertyInfo();
         piSchID.setName("intSchID");
-        piSchID.setValue(oStudent.SchID);
+        piSchID.setValue(oUser.SchID);
         request.addProperty(piSchID);
 
-        PropertyInfo piAcctID = new PropertyInfo();
-        piAcctID.setName("intAcctID");
-        piAcctID.setValue(oStudent.AcctID);
-        request.addProperty(piAcctID);
 
         SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(
                 SoapEnvelope.VER11);
@@ -417,7 +335,6 @@ public class RecordAttendanceFragment extends Fragment {
         return stuAttendance;
     }
 
-
     public void drawCalendar(CalendarPickerView calendar, Calendar currentMonth, Calendar nextMonth) {
         calendar.init(currentMonth.getTime(), nextMonth.getTime()).inMode(CalendarPickerView.SelectionMode.MULTIPLE);
     }
@@ -428,7 +345,6 @@ public class RecordAttendanceFragment extends Fragment {
                 .withSelectedDates(datesSelected);
     }
 
-
     public void updateDateArray(ArrayList<StudentAttendance> attendanceArray,
                                 ArrayList<Date> datesAttended) {
 
@@ -437,18 +353,9 @@ public class RecordAttendanceFragment extends Fragment {
         for (int i = 0; i < attendanceArray.size(); i++) {
 
             try {
-                if (!datesAttended.contains(dateFormat.parse(attendanceArray.get(i).ADate)))
+                if (! datesAttended.contains(dateFormat.parse(attendanceArray.get(i).ADate)))
                     datesAttended.add(dateFormat.parse(attendanceArray.get(i).ADate));
-               /*
-                if (validateDate(attendanceArray.get(i).ADate)) {
-                    Toast toast = Toast.makeText(getActivity(), "Within range.", Toast.LENGTH_SHORT);
-                    toast.show();
-                    datesAttended.add(dateFormat.parse(attendanceArray.get(i).ADate));
-                } else {
-                    Toast toast = Toast.makeText(getActivity(), "Not within range.", Toast.LENGTH_SHORT);
-                    toast.show();
 
-                }*/
             } catch (ParseException e) {
                 e.printStackTrace();
             }
@@ -456,11 +363,9 @@ public class RecordAttendanceFragment extends Fragment {
         }
 
         if (datesAttended.size() > 0)
-            drawCalendar(calendarPicker, thisMonth, nextMonth, datesAttended);
+            drawCalendar(classCalendarPicker, thisMonth, nextMonth, datesAttended);
         else
-            drawCalendar(calendarPicker, thisMonth, nextMonth);
+            drawCalendar(classCalendarPicker, thisMonth, nextMonth);
     }
-
-
 
 }

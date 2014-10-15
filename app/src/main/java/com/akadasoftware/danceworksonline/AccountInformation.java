@@ -12,10 +12,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.akadasoftware.danceworksonline.Classes.AppPreferences;
 import com.akadasoftware.danceworksonline.Dialogs.EditAmountDialog;
 import com.akadasoftware.danceworksonline.Dialogs.EditCreditCardDialog;
 import com.akadasoftware.danceworksonline.Dialogs.EditDateDialog;
-import com.akadasoftware.danceworksonline.Classes.AppPreferences;
 
 import java.text.NumberFormat;
 import java.util.Calendar;
@@ -345,6 +345,12 @@ public class AccountInformation extends ActionBarActivity implements ActionBar.T
 
         int position = getActionBar().getSelectedTab().getPosition();
 
+        NumberFormat nf = NumberFormat.getCurrencyInstance();
+        if (inputText.endsWith(".##")) {
+            inputText += ".00";
+        }
+
+        inputText = nf.format(Float.parseFloat(inputText));
 
         if (position == 3) {
             EnterPaymentFragment pf = (EnterPaymentFragment) mSectionsPagerAdapter.instantiateItem(mViewPager, 3);

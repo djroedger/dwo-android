@@ -68,7 +68,7 @@ public class EditAmountDialog extends DialogFragment implements TextView.OnEdito
                 activity.onFinishEditAmountDialog(etAmount.getText().toString());
                 this.dismiss();
             } else {
-                activity.onFinishEditAmountDialog("0");
+                activity.onFinishEditAmountDialog("$0.00");
                 this.dismiss();
             }
             return true;
