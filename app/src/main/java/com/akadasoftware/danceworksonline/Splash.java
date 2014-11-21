@@ -18,11 +18,16 @@ import com.akadasoftware.danceworksonline.Classes.School;
 import com.akadasoftware.danceworksonline.Classes.SchoolClasses;
 import com.akadasoftware.danceworksonline.Classes.Student;
 import com.akadasoftware.danceworksonline.Classes.User;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Splash extends ActionBarActivity {
 
@@ -183,6 +188,25 @@ public class Splash extends ActionBarActivity {
 
         @Override
         protected User doInBackground(Data... data) {
+            HashMap<String, Object> params = new HashMap<String, Object>();
+            params.put("email", "kyle@akadasoftware.com");
+            params.put("password", "akada");
+            String url = oGlobals.URLBuilder("getUser?", params);
+            String response = oGlobals.callJSON(url);
+            User objUser = new User();
+            try {
+
+                GsonBuilder gsonBuilder = new GsonBuilder();
+                gsonBuilder.setDateFormat("M/d/yy hh:mm a");
+                Gson gson = gsonBuilder.create();
+                //Sets what the the object will be deserialized too.
+                Type collectionType = new TypeToken<User>() {
+                }.getType();
+                objUser = gson.fromJson(response, collectionType);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+            //String response = oGlobals.callJSON("http://app.akadasoftware.com/ws/Service1.svc/getUser?email=kyle@akadasoftware.com&password=akada");
 
             return oGlobals.getUserByID(_appPrefs);
         }
