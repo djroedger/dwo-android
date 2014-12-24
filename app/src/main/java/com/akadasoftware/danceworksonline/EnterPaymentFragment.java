@@ -98,6 +98,9 @@ public class EnterPaymentFragment extends Fragment {
         public void onEditCreditCardDialog(int accountPosition);
     }
 
+    /**
+     * I added this
+     */
     public static EnterPaymentFragment newInstance(int position, String description, Float amount) {
         EnterPaymentFragment fragment = new EnterPaymentFragment();
         Bundle args = new Bundle();
