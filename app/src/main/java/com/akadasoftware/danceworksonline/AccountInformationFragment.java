@@ -48,6 +48,7 @@ public class AccountInformationFragment extends Fragment {
      * fragment.
      */
 
+
     private AppPreferences _appPrefs;
     Account oAccount;
     School oSchool;

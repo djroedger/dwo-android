@@ -5,6 +5,13 @@ import android.widget.Spinner;
 
 import com.akadasoftware.danceworksonline.Adapters.SessionAdapter;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.StatusLine;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.PropertyInfo;
 import org.ksoap2.serialization.SoapObject;
@@ -12,9 +19,13 @@ import org.ksoap2.serialization.SoapPrimitive;
 import org.ksoap2.serialization.SoapSerializationEnvelope;
 import org.ksoap2.transport.HttpTransportSE;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * Created by Kyle on 4/7/2014.
@@ -188,6 +199,60 @@ public class Globals {
 
         return classTime;
     }
+
+    /**
+     * Builds URL string for web service
+     */
+
+    public String URLBuilder(String methodName, HashMap parameters) {
+        String url = "http://app.akadasoftware.com/ws/Service1.svc/";
+        url += methodName;
+
+        Set<String> keySet = parameters.keySet();
+        Iterator<String> keySetIterator = keySet.iterator();
+        while (keySetIterator.hasNext()) {
+            String key = keySetIterator.next();
+            String value = (String) parameters.get(key);
+            url += key + "=" + value + "&";
+        }
+        url = url.substring(0, url.length() - 1);
+        return url;
+    }
+
+    /**
+     * Make JSON call, get response.. Hopefully
+     */
+
+    public String callJSON(String url) {
+        HttpClient httpclient = new DefaultHttpClient();
+        HttpGet httpget = new HttpGet(url);
+        HttpResponse response;
+        String responseString = null;
+        try {
+            response = httpclient.execute(httpget);
+            StatusLine statusLine = response.getStatusLine();
+            if (statusLine.getStatusCode() == HttpStatus.SC_OK) {
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                response.getEntity().writeTo(out);
+                out.close();
+                responseString = out.toString();
+            } else {
+                // Closes the connection.
+                response.getEntity().getContent().close();
+                throw new IOException(statusLine.getReasonPhrase());
+            }
+        } catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+
+        }
+        return responseString;
+    }
+    /**
+     * I just added this.
+     */
+
 
     /**
      * Updates the account and then resaves it into the arraylist

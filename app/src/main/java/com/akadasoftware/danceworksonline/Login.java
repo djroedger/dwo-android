@@ -88,7 +88,7 @@ public class Login extends ActionBarActivity {
             _appPrefs = new AppPreferences(activity);
             _appPrefs.saveNavDrawerPosition(0);
             oGlobals = new Globals();
-
+            //String response = oGlobals.callJSON("http://app.akadasoftware.com/ws/Service1.svc/getUser?email=kyle@akadasoftware.com&password=akada");
             btnLogin = (Button) rootView.findViewById(R.id.btnLogin);
             etEmail = (EditText) rootView.findViewById(R.id.etEmail);
             etPassword = (EditText) rootView.findViewById(R.id.etPassword);
