@@ -100,7 +100,9 @@ public class EnterPaymentFragment extends Fragment {
 
     /**
      * I added this
+     * Boogity Boo
      */
+
     public static EnterPaymentFragment newInstance(int position, String description, Float amount) {
         EnterPaymentFragment fragment = new EnterPaymentFragment();
         Bundle args = new Bundle();
