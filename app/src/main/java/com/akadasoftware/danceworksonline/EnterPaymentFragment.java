@@ -140,24 +140,26 @@ public class EnterPaymentFragment extends Fragment {
             }
         }
 
-        ViewPager mViewPager = (ViewPager) activity.findViewById(R.id.pager);
-        mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-            @Override
-            public void onPageScrolled(int i, float v, int i2) {
+        if (savedInstanceState != null) {
+            ViewPager mViewPager = (ViewPager) activity.findViewById(R.id.pager);
+            mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+                @Override
+                public void onPageScrolled(int i, float v, int i2) {
 
-            }
+                }
 
-            @Override
-            public void onPageSelected(int position) {
+                @Override
+                public void onPageSelected(int position) {
+                    refreshEnterPayment();
+                }
 
-                refreshEnterPayment();
-            }
+                @Override
+                public void onPageScrollStateChanged(int i) {
 
-            @Override
-            public void onPageScrollStateChanged(int i) {
+                }
+            });
 
-            }
-        });
+        }
 
     }
 

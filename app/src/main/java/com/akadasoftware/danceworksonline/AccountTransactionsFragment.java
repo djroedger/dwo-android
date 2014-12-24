@@ -129,6 +129,13 @@ public class AccountTransactionsFragment extends ListFragment {
         return view;
     }
 
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        setListAdapter(null);
+    }
+
     /**
      * Using ActionBar-PullToRefresh with a ListFragment is slightly different, as ListFragment
      * provides the whole content view itself. This means that we need to insert ourselves into the
@@ -175,12 +182,6 @@ public class AccountTransactionsFragment extends ListFragment {
 
     }
 
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        setListAdapter(null);
-    }
 
     /**
      * Creates a new instance of the AccountTransaction = to the position of the listview
