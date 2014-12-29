@@ -69,6 +69,8 @@ public class EnterPaymentFragment extends Fragment {
     Spinner typeSpinner;
     Calendar cal;
 
+    ViewPager mViewPager;
+
     // Listeners for the interface used to handle the dialog pop-ups
     private onEditAmountDialog mListener;
     private onEditDateDialog dateListener;
@@ -145,26 +147,7 @@ public class EnterPaymentFragment extends Fragment {
             }
         }
 
-        if (savedInstanceState != null) {
-            ViewPager mViewPager = (ViewPager) activity.findViewById(R.id.pager);
-            mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-                @Override
-                public void onPageScrolled(int i, float v, int i2) {
 
-                }
-
-                @Override
-                public void onPageSelected(int position) {
-                    refreshEnterPayment();
-                }
-
-                @Override
-                public void onPageScrollStateChanged(int i) {
-
-                }
-            });
-
-        }
 
     }
 
@@ -376,6 +359,7 @@ public class EnterPaymentFragment extends Fragment {
             throw new ClassCastException(activity.toString()
                     + " must implement onEditCreditCardDialog");
         }
+
     }
 
     @Override
@@ -383,6 +367,7 @@ public class EnterPaymentFragment extends Fragment {
         super.onDetach();
         mListener = null;
         dateListener = null;
+        mViewPager = null;
     }
 
 
