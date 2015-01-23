@@ -189,9 +189,9 @@ public class Splash extends ActionBarActivity {
         @Override
         protected User doInBackground(Data... data) {
             HashMap<String, Object> params = new HashMap<String, Object>();
-            params.put("email", "kyle@akadasoftware.com");
-            params.put("password", "akada");
-            String url = oGlobals.URLBuilder("getUser?", params);
+            params.put("UserID", String.valueOf(_appPrefs.getUserID()));
+            params.put("UserGUID", _appPrefs.getUserGUID());
+            String url = oGlobals.URLBuilder("getUserByID?", params);
             String response = oGlobals.callJSON(url);
             User objUser = new User();
             try {
@@ -206,9 +206,8 @@ public class Splash extends ActionBarActivity {
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
-            //String response = oGlobals.callJSON("http://app.akadasoftware.com/ws/Service1.svc/getUser?email=kyle@akadasoftware.com&password=akada");
 
-            return oGlobals.getUserByID(_appPrefs);
+            return objUser;
         }
 
         protected void onPostExecute(User oNewUser) {
@@ -284,7 +283,30 @@ public class Splash extends ActionBarActivity {
     private class getSchoolAsync extends AsyncTask<Data, Void, School> {
 
         protected School doInBackground(Data... data) {
-            return oGlobals.getSchool(_appPrefs);
+
+            HashMap<String, Object> params = new HashMap<String, Object>();
+            params.put("SchID", String.valueOf(_appPrefs.getSchID()));
+            params.put("UserID", String.valueOf(_appPrefs.getUserID()));
+            params.put("UserGUID", _appPrefs.getUserGUID());
+            String url = oGlobals.URLBuilder("getSchool?", params);
+            String response = oGlobals.callJSON(url);
+            School objSchool = new School();
+            try {
+
+                GsonBuilder gsonBuilder = new GsonBuilder();
+                gsonBuilder.setDateFormat("M/d/yy hh:mm a");
+                Gson gson = gsonBuilder.create();
+                //Sets what the the object will be deserialized too.
+                Type collectionType = new TypeToken<School>() {
+                }.getType();
+                objSchool = gson.fromJson(response, collectionType);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+
+            return objSchool;
+
+            //return oGlobals.getSchool(_appPrefs);
         }
 
         protected void onPostExecute(School oSchool) {
@@ -320,7 +342,29 @@ public class Splash extends ActionBarActivity {
         @Override
         protected ArrayList<Account> doInBackground(Data... data) {
 
-            return oGlobals.getAccounts(_appPrefs);
+            HashMap<String, Object> params = new HashMap<String, Object>();
+            params.put("Order", "");
+            params.put("SchID", String.valueOf(_appPrefs.getSchID()));
+            params.put("UserID", String.valueOf(_appPrefs.getUserID()));
+            params.put("UserGUID", _appPrefs.getUserGUID());
+            String url = oGlobals.URLBuilder("getAccountsJS?", params);
+            String response = oGlobals.callJSON(url);
+            ArrayList<Account> AccountsArray = new ArrayList<Account>();
+            try {
+
+                GsonBuilder gsonBuilder = new GsonBuilder();
+                gsonBuilder.setDateFormat("M/d/yy hh:mm a");
+                Gson gson = gsonBuilder.create();
+                //Sets what the the object will be deserialized too.
+                Type collectionType = new TypeToken<ArrayList<Account>>() {
+                }.getType();
+                AccountsArray = gson.fromJson(response, collectionType);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+
+            return AccountsArray;
+           
         }
 
         protected void onPostExecute(ArrayList<Account> result) {
@@ -340,9 +384,34 @@ public class Splash extends ActionBarActivity {
         protected ArrayList<Student> doInBackground(Data... data) {
 
             /**
-             * 0 menas loads all students
+             * 0 means loads all students
              */
-            return oGlobals.getStudents(_appPrefs, 0);
+            String strOrder = " Order by FNAME,LNAME";
+            HashMap<String, Object> params = new HashMap<String, Object>();
+            params.put("Order", strOrder);
+            params.put("SchID", String.valueOf(_appPrefs.getSchID()));
+            params.put("AcctID", String.valueOf(0));
+            params.put("UserID", String.valueOf(_appPrefs.getUserID()));
+            params.put("UserGUID", _appPrefs.getUserGUID());
+            String url = oGlobals.URLBuilder("getStudents?", params);
+            String response = oGlobals.callJSON(url);
+            ArrayList<Student> StudentsArray = new ArrayList<Student>();
+            try {
+
+                GsonBuilder gsonBuilder = new GsonBuilder();
+                gsonBuilder.setDateFormat("M/d/yy hh:mm a");
+                Gson gson = gsonBuilder.create();
+                //Sets what the the object will be deserialized too.
+                Type collectionType = new TypeToken<ArrayList<Student>>() {
+                }.getType();
+                StudentsArray = gson.fromJson(response, collectionType);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+
+            return StudentsArray;
+
+            //return oGlobals.getStudents(_appPrefs, 0);
         }
 
         protected void onPostExecute(ArrayList<Student> result) {

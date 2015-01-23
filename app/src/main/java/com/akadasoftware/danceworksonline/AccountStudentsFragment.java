@@ -17,10 +17,15 @@ import com.akadasoftware.danceworksonline.Classes.Account;
 import com.akadasoftware.danceworksonline.Classes.AppPreferences;
 import com.akadasoftware.danceworksonline.Classes.Globals;
 import com.akadasoftware.danceworksonline.Classes.Student;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
 import org.ksoap2.serialization.SoapSerializationEnvelope;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * A fragment representing a list of Items.
@@ -155,7 +160,31 @@ public class AccountStudentsFragment extends ListFragment implements AbsListView
         @Override
         protected ArrayList<Student> doInBackground(Data... data) {
 
-            return oGlobals.getStudents(_appPrefs, _appPrefs.getAcctID());
+            String strOrder = " Order by FNAME,LNAME";
+            HashMap<String, Object> params = new HashMap<String, Object>();
+            params.put("Order", strOrder);
+            params.put("SchID", String.valueOf(_appPrefs.getSchID()));
+            params.put("AcctID", String.valueOf(_appPrefs.getAcctID()));
+            params.put("UserID", String.valueOf(_appPrefs.getUserID()));
+            params.put("UserGUID", _appPrefs.getUserGUID());
+            String url = oGlobals.URLBuilder("getStudents?", params);
+            String response = oGlobals.callJSON(url);
+            ArrayList<Student> StudentsArray = new ArrayList<Student>();
+            try {
+
+                GsonBuilder gsonBuilder = new GsonBuilder();
+                gsonBuilder.setDateFormat("M/d/yy hh:mm a");
+                Gson gson = gsonBuilder.create();
+                //Sets what the the object will be deserialized too.
+                Type collectionType = new TypeToken<ArrayList<Student>>() {
+                }.getType();
+                StudentsArray = gson.fromJson(response, collectionType);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+
+            return StudentsArray;
+            //return oGlobals.getStudents(_appPrefs, _appPrefs.getAcctID());
         }
 
         protected void onPostExecute(ArrayList<Student> result) {

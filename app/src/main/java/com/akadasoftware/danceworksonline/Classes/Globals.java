@@ -22,7 +22,10 @@ import org.ksoap2.transport.HttpTransportSE;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InterruptedIOException;
+import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
@@ -200,6 +203,13 @@ public class Globals {
         return classTime;
     }
 
+    public String formatDate(String unformattedDate) {
+        unformattedDate = unformattedDate.substring(6, unformattedDate.length() - 7);
+        Date formattedDate = new Date(Long.parseLong(unformattedDate));
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        String strFormattedDtae = sdf.format(formattedDate);
+        return strFormattedDtae;
+    }
     /**
      * Builds URL string for web service
      */
@@ -213,9 +223,19 @@ public class Globals {
         while (keySetIterator.hasNext()) {
             String key = keySetIterator.next();
             String value = (String) parameters.get(key);
+            /**
+             * We need to encode parameters to account for strings such as ORDER's that have characters
+             * such as commas that need to be encoded to be read by a browsers
+             */
+            try {
+                value = URLEncoder.encode(value, "utf-8");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             url += key + "=" + value + "&";
         }
         url = url.substring(0, url.length() - 1);
+
         return url;
     }
 
@@ -249,9 +269,6 @@ public class Globals {
         }
         return responseString;
     }
-    /**
-     * I just added this.
-     */
 
 
     /**

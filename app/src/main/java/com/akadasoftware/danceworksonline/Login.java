@@ -23,8 +23,13 @@ import com.akadasoftware.danceworksonline.Classes.School;
 import com.akadasoftware.danceworksonline.Classes.SchoolClasses;
 import com.akadasoftware.danceworksonline.Classes.Student;
 import com.akadasoftware.danceworksonline.Classes.User;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Login extends ActionBarActivity {
 
@@ -160,8 +165,27 @@ public class Login extends ActionBarActivity {
 
             @Override
             protected User doInBackground(Globals.Data... data) {
+                HashMap<String, Object> params = new HashMap<String, Object>();
+                params.put("email", strEmail);
+                params.put("password", strPassword);
+                String url = oGlobals.URLBuilder("getUser?", params);
+                String response = oGlobals.callJSON(url);
+                User objUser = new User();
+                try {
 
-                return oGlobals.getUser(_appPrefs, strEmail, strPassword);
+                    GsonBuilder gsonBuilder = new GsonBuilder();
+                    gsonBuilder.setDateFormat("M/d/yy hh:mm a");
+                    Gson gson = gsonBuilder.create();
+                    //Sets what the the object will be deserialized too.
+                    Type collectionType = new TypeToken<User>() {
+                    }.getType();
+                    objUser = gson.fromJson(response, collectionType);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+
+                return objUser;
+                //return oGlobals.getUser(_appPrefs, strEmail, strPassword);
 
             }
 
@@ -238,7 +262,30 @@ public class Login extends ActionBarActivity {
         private class getSchoolAsync extends AsyncTask<Data, Void, School> {
 
             protected School doInBackground(Data... data) {
-                return oGlobals.getSchool(_appPrefs);
+
+                HashMap<String, Object> params = new HashMap<String, Object>();
+                params.put("SchID", String.valueOf(_appPrefs.getSchID()));
+                params.put("UserID", String.valueOf(_appPrefs.getUserID()));
+                params.put("UserGUID", _appPrefs.getUserGUID());
+                String url = oGlobals.URLBuilder("getSchool?", params);
+                String response = oGlobals.callJSON(url);
+                School objSchool = new School();
+                try {
+
+                    GsonBuilder gsonBuilder = new GsonBuilder();
+                    gsonBuilder.setDateFormat("M/d/yy hh:mm a");
+                    Gson gson = gsonBuilder.create();
+                    //Sets what the the object will be deserialized too.
+                    Type collectionType = new TypeToken<School>() {
+                    }.getType();
+                    objSchool = gson.fromJson(response, collectionType);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+
+                return objSchool;
+
+                //return oGlobals.getSchool(_appPrefs);
             }
 
             protected void onPostExecute(School oSchool) {
@@ -273,7 +320,29 @@ public class Login extends ActionBarActivity {
             @Override
             protected ArrayList<Account> doInBackground(Globals.Data... data) {
 
-                return oGlobals.getAccounts(_appPrefs);
+                HashMap<String, Object> params = new HashMap<String, Object>();
+                params.put("Order", "");
+                params.put("SchID", String.valueOf(_appPrefs.getSchID()));
+                params.put("UserID", String.valueOf(_appPrefs.getUserID()));
+                params.put("UserGUID", _appPrefs.getUserGUID());
+                String url = oGlobals.URLBuilder("getAccountsJS?", params);
+                String response = oGlobals.callJSON(url);
+                ArrayList<Account> AccountsArray = new ArrayList<Account>();
+                try {
+
+                    GsonBuilder gsonBuilder = new GsonBuilder();
+                    gsonBuilder.setDateFormat("M/d/yy hh:mm a");
+                    Gson gson = gsonBuilder.create();
+                    //Sets what the the object will be deserialized too.
+                    Type collectionType = new TypeToken<ArrayList<Account>>() {
+                    }.getType();
+                    AccountsArray = gson.fromJson(response, collectionType);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+
+                return AccountsArray;
+                // return oGlobals.getAccounts(_appPrefs);
             }
 
             protected void onPostExecute(ArrayList<Account> result) {
@@ -289,7 +358,35 @@ public class Login extends ActionBarActivity {
                 AsyncTask<Globals.Data, Void, ArrayList<Student>> {
 
             protected ArrayList<Student> doInBackground(Globals.Data... data) {
-                return oGlobals.getStudents(_appPrefs, 0);
+                /**
+                 * 0 means loads all students
+                 */
+                String strOrder = " Order by FNAME,LNAME";
+                HashMap<String, Object> params = new HashMap<String, Object>();
+                params.put("Order", strOrder);
+                params.put("SchID", String.valueOf(_appPrefs.getSchID()));
+                params.put("AcctID", String.valueOf(0));
+                params.put("UserID", String.valueOf(_appPrefs.getUserID()));
+                params.put("UserGUID", _appPrefs.getUserGUID());
+                String url = oGlobals.URLBuilder("getStudents?", params);
+                String response = oGlobals.callJSON(url);
+                ArrayList<Student> StudentsArray = new ArrayList<Student>();
+                try {
+
+                    GsonBuilder gsonBuilder = new GsonBuilder();
+                    gsonBuilder.setDateFormat("M/d/yy hh:mm a");
+                    Gson gson = gsonBuilder.create();
+                    //Sets what the the object will be deserialized too.
+                    Type collectionType = new TypeToken<ArrayList<Student>>() {
+                    }.getType();
+                    StudentsArray = gson.fromJson(response, collectionType);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+
+                return StudentsArray;
+
+                //return oGlobals.getStudents(_appPrefs, 0);
             }
 
             protected void onPostExecute(ArrayList<Student> result) {

@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import com.akadasoftware.danceworksonline.Classes.AccountTransactions;
 import com.akadasoftware.danceworksonline.Classes.AppPreferences;
+import com.akadasoftware.danceworksonline.Classes.Globals;
 import com.akadasoftware.danceworksonline.R;
 
 import java.text.NumberFormat;
@@ -35,7 +36,7 @@ public class AccountTransactionAdapter extends ArrayAdapter<AccountTransactions>
     private int selectedPos;
     String strResponse, strKind, strType;
     List<AccountTransactions> transactionsList;
-
+    Globals oGlobals;
 
     public AccountTransactionAdapter(Context context, int resource, ArrayList<AccountTransactions> items) {
         super(context, resource, items);
@@ -48,7 +49,7 @@ public class AccountTransactionAdapter extends ArrayAdapter<AccountTransactions>
         TextView tvType;
         TextView tvDescription;
         TextView tvAmount;
-        TextView tvBalance;
+        //TextView tvBalance;
     }
 
     /**
@@ -81,8 +82,7 @@ public class AccountTransactionAdapter extends ArrayAdapter<AccountTransactions>
             holder.tvAmount = (TextView) convertView
                     .findViewById(R.id.tvAmount);
 
-            holder.tvBalance = (TextView) convertView
-                    .findViewById(R.id.tvBalance);
+            // holder.tvBalance = (TextView) convertView.findViewById(R.id.tvBalance);
 
             convertView.setTag(holder);
 
@@ -137,13 +137,12 @@ public class AccountTransactionAdapter extends ArrayAdapter<AccountTransactions>
 
         }
 
+        oGlobals = new Globals();
         //String date with time portion chopped off
-        String strDate = oAccountTransactions.TDate.substring(0, 10);
-        //Switching order around so that mm/dd/yyyy
-        String strTestDate = strDate.substring(5, strDate.length()) + "/" + strDate.substring(0, 4);
-        String strFinalDate = strTestDate.replace("-", "/");
+        // String strDate = oAccountTransactions.TDate.substring(0, 10);
+        String strDate = oGlobals.formatDate(oAccountTransactions.TDate);
 
-        holder.tvDate.setText(strFinalDate + " ");
+        holder.tvDate.setText(strDate + " ");
         holder.tvDate.setTag(position);
         holder.tvDate.setWidth(175);
 

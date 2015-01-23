@@ -15,15 +15,17 @@ import com.akadasoftware.danceworksonline.Adapters.AccountTransactionAdapter;
 import com.akadasoftware.danceworksonline.Classes.Account;
 import com.akadasoftware.danceworksonline.Classes.AccountTransactions;
 import com.akadasoftware.danceworksonline.Classes.AppPreferences;
+import com.akadasoftware.danceworksonline.Classes.Globals;
 import com.akadasoftware.danceworksonline.Classes.User;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
-import org.ksoap2.SoapEnvelope;
-import org.ksoap2.serialization.PropertyInfo;
-import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapSerializationEnvelope;
-import org.ksoap2.transport.HttpTransportSE;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import uk.co.senab.actionbarpulltorefresh.extras.actionbarcompat.PullToRefreshLayout;
 import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
@@ -48,6 +50,7 @@ public class AccountTransactionsFragment extends ListFragment {
     static SoapSerializationEnvelope envelopeOutput;
     static User oUser;
     private AppPreferences _appPrefs;
+    Globals oGlobals;
     Account oAccount;
     Activity activity;
     ArrayList<Account> arrayAccounts;
@@ -87,7 +90,7 @@ public class AccountTransactionsFragment extends ListFragment {
         super.onCreate(savedInstanceState);
         activity = getActivity();
         _appPrefs = new AppPreferences(activity);
-
+        oGlobals = new Globals();
         arrayAccounts = _appPrefs.getAccounts();
         int position = getArguments().getInt("Position");
 
@@ -235,7 +238,30 @@ public class AccountTransactionsFragment extends ListFragment {
         @Override
         protected ArrayList<AccountTransactions> doInBackground(Data... data) {
 
-            return getTransactions();
+            String strOrder = " Order by TDate,TNO";
+            HashMap<String, Object> params = new HashMap<String, Object>();
+            params.put("Order", strOrder);
+            params.put("AcctID", String.valueOf(_appPrefs.getAcctID()));
+            params.put("UserID", String.valueOf(_appPrefs.getUserID()));
+            params.put("UserGUID", _appPrefs.getUserGUID());
+            String url = oGlobals.URLBuilder("getAccountTransactions?", params);
+            String response = oGlobals.callJSON(url);
+            ArrayList<AccountTransactions> transactionsArray = new ArrayList<AccountTransactions>();
+            try {
+
+                GsonBuilder gsonBuilder = new GsonBuilder();
+                gsonBuilder.setDateFormat("M/d/yy hh:mm a");
+                Gson gson = gsonBuilder.create();
+                //Sets what the the object will be deserialized too.
+                Type collectionType = new TypeToken<ArrayList<AccountTransactions>>() {
+                }.getType();
+                transactionsArray = gson.fromJson(response, collectionType);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+
+            return transactionsArray;
+            //return getTransactions();
         }
 
         protected void onPostExecute(ArrayList<AccountTransactions> result) {
@@ -249,7 +275,7 @@ public class AccountTransactionsFragment extends ListFragment {
         }
     }
 
-    public ArrayList<AccountTransactions> getTransactions() {
+  /*  public ArrayList<AccountTransactions> getTransactions() {
         String MethodName = "getAccountTransactions";
         SoapObject response = InvokeMethod(Data.URL, MethodName);
         return RetrieveAccountTransactionsFromSoap(response);
@@ -333,6 +359,6 @@ public class AccountTransactionsFragment extends ListFragment {
         }
 
         return AccountTrans;
-    }
+    }*/
 
 }
