@@ -21,6 +21,9 @@ import com.akadasoftware.danceworksonline.Classes.AppPreferences;
 import com.akadasoftware.danceworksonline.Classes.Globals;
 import com.akadasoftware.danceworksonline.Classes.School;
 import com.akadasoftware.danceworksonline.Classes.User;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.MarshalFloat;
@@ -32,7 +35,9 @@ import org.ksoap2.transport.HttpTransportSE;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 
@@ -53,7 +58,7 @@ public class AccountInformationFragment extends Fragment {
     Account oAccount;
     School oSchool;
     User oUser;
-    Globals globals;
+    Globals oGlobals;
     Activity activity;
     ArrayList<Account> arrayListAccounts;
     String strStatus, strExpDate, strCCType, strCCNum, SOAP_ACTION, METHOD_NAME;
@@ -85,7 +90,7 @@ public class AccountInformationFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         activity = getActivity();
-        globals = new Globals();
+        oGlobals = new Globals();
         _appPrefs = new AppPreferences(activity);
         arrayListAccounts = _appPrefs.getAccounts();
         position = getArguments().getInt("Position");
@@ -294,25 +299,26 @@ public class AccountInformationFragment extends Fragment {
                 } else {
                     //Amex, needs to be length 15
                     if (creditCard.charAt(0) == '3') {
-                        if (creditCard.trim().length() != 15) {
-                            Toast toast = Toast.makeText(activity, "Invalid Credit Card #", Toast.LENGTH_LONG);
-                            toast.show();
+                        if (creditCard.trim().length() == 15) {
+                            saveCreditCardChangesAsync saveCreditCardChanges = new saveCreditCardChangesAsync();
+                            saveCreditCardChanges.execute();
                         }
                         //All other card lengths are 16
                     } else {
-                        if (creditCard.trim().length() != 16) {
-                            Toast toast = Toast.makeText(activity, "Invalid Credit Card #", Toast.LENGTH_LONG);
-                            toast.show();
+                        if (creditCard.trim().length() == 16) {
+                            saveCreditCardChangesAsync saveCreditCardChanges = new saveCreditCardChangesAsync();
+                            saveCreditCardChanges.execute();
                         }
                     }
-                    saveCreditCardChangesAsync saveCreditCardChanges = new saveCreditCardChangesAsync();
-                    saveCreditCardChanges.execute();
+
+                    Toast toast = Toast.makeText(activity, "Invalid Credit Card #", Toast.LENGTH_LONG);
+                    toast.show();
 
                 }
             }
         });
         /**
-         * Cancels edit of credit card informatoin. Takes you back to main paige.
+         * Cancels edit of credit card information. Takes you back to main paige.
          */
         btnCancelSaveCreditCard.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -431,7 +437,8 @@ public class AccountInformationFragment extends Fragment {
         @Override
         protected String doInBackground(Data... data) {
             publishProgress();
-            return saveAccountChanges();
+            //return saveAccountChanges();
+            return saveAccountInformation();
         }
 
         protected void onPostExecute(String result) {
@@ -445,7 +452,7 @@ public class AccountInformationFragment extends Fragment {
                 oAccount.ZipCode = etZip.getText().toString().trim();
                 oAccount.Phone = etPhone.getText().toString().trim();
                 oAccount.EMail = etEmail.getText().toString().trim();
-                globals.updateAccount(oAccount, position, activity);
+                oGlobals.updateAccount(oAccount, position, activity);
                 setAccountFields(oAccount, rootView);
                 Toast toast = Toast.makeText(getActivity(), result, Toast.LENGTH_LONG);
                 toast.show();
@@ -458,6 +465,89 @@ public class AccountInformationFragment extends Fragment {
         }
     }
 
+    public String saveAccountInformation() {
+        HashMap<String, Object> params = new HashMap<String, Object>();
+        params.put("UserID", String.valueOf(oUser.UserID));
+        params.put("UserGUID", oUser.UserGUID);
+        params.put("AcctID", String.valueOf(oAccount.AcctID));
+        params.put("FName", etFirst.getText().toString());
+        params.put("LName", etLast.getText().toString());
+
+        String strEmail;
+        if (etEmail.getText().toString().trim().equals(""))
+            strEmail = oAccount.EMail;
+        else
+            strEmail = etEmail.getText().toString().trim();
+        params.put("EMail", strEmail);
+
+        String strAddress;
+        if (etAddress.getText().toString().trim().equals(""))
+            strAddress = oAccount.Address;
+        else
+            strAddress = etAddress.getText().toString().trim();
+        params.put("Address", strAddress);
+
+        String strCity;
+        if (etCity.getText().toString().trim().equals(""))
+            strCity = oAccount.City;
+        else
+            strCity = etCity.getText().toString().trim();
+        params.put("City", strCity);
+
+        String strState;
+        if (etState.getText().toString().trim().equals(""))
+            strState = oAccount.State;
+        else
+            strState = etState.getText().toString().trim();
+        params.put("State", strState);
+
+        String strZip;
+        if (etZip.getText().toString().trim().equals(""))
+            strZip = oAccount.ZipCode;
+        else
+            strZip = etZip.getText().toString().trim();
+        params.put("ZipCode", strZip);
+
+        String strPhone;
+        if (etPhone.getText().toString().trim().equals(""))
+            strPhone = oAccount.Phone;
+        else
+            strPhone = etPhone.getText().toString().trim();
+        params.put("Phone", strPhone);
+
+        params.put("TuitionSel", String.valueOf(oAccount.TuitionSel));
+        String strStatus = AccountStatusSpinner.getSelectedItem().toString();
+
+        int intStatus;
+        if (strStatus.equals("active")) {
+            intStatus = 1;
+        } else if (strStatus.equals("inactive")) {
+            intStatus = 0;
+        } else {
+            intStatus = 2;
+        }
+        params.put("Status", String.valueOf(intStatus));
+        params.put("CheckName", String.valueOf(1));
+        String url = oGlobals.URLBuilder("saveAccountInformation?", params);
+        String response = oGlobals.callJSON(url);
+        String accountResponse = "";
+        try {
+
+            GsonBuilder gsonBuilder = new GsonBuilder();
+            gsonBuilder.setDateFormat("M/d/yy hh:mm a");
+            Gson gson = gsonBuilder.create();
+            //Sets what the the object will be deserialized too.
+            Type collectionType = new TypeToken<String>() {
+            }.getType();
+            accountResponse = gson.fromJson(response, collectionType);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return accountResponse;
+    }
+
+    //Deprecated
     public String saveAccountChanges() {
 
         SOAP_ACTION = "saveAccountInformation";
@@ -592,14 +682,16 @@ public class AccountInformationFragment extends Fragment {
 
     }
 
-    public class saveCreditCardChangesAsync extends AsyncTask<Data, Void, SoapPrimitive> {
+
+    public class saveCreditCardChangesAsync extends AsyncTask<Data, Void, Integer> {
 
 
         @Override
-        protected SoapPrimitive doInBackground(Data... data) {
+        protected Integer doInBackground(Data... data) {
             publishProgress();
 
-            return saveCreditCard();
+            return saveCreditCardInformation();
+            //return saveCreditCard();
         }
 
 
@@ -618,7 +710,7 @@ public class AccountInformationFragment extends Fragment {
                         toString().trim().length() - 4, etNewCC.getText().toString().length());
                 oAccount.CCExpire = etNewCCExp.getText().toString().trim();
 
-                globals.updateAccount(oAccount, position, activity);
+                oGlobals.updateAccount(oAccount, position, activity);
                 buildString(oAccount);
 
 
@@ -634,6 +726,71 @@ public class AccountInformationFragment extends Fragment {
         }
     }
 
+    public int saveCreditCardInformation() {
+        oSchool = _appPrefs.getSchool();
+
+        HashMap<String, Object> params = new HashMap<String, Object>();
+        params.put("UserID", String.valueOf(oUser.UserID));
+        params.put("UserGUID", oUser.UserGUID);
+        params.put("AcctID", String.valueOf(oAccount.AcctID));
+        params.put("CCUser", oSchool.CCUserName);
+        params.put("CCPass", oSchool.CCPassword);
+        params.put("CardNumber", etNewCC.getText().toString().trim());
+        params.put("CardExpire", etNewCCExp.getText().toString().trim());
+        params.put("CCFName", etFirstCC.getText().toString().trim());
+        params.put("CCLName", etLastCC.getText().toString().trim());
+
+        String strAddress;
+        if (etAddressCC.getText().toString().trim().equals(""))
+            strAddress = oAccount.CCAddress;
+        else
+            strAddress = etAddressCC.getText().toString().trim();
+        params.put("CCAddress", strAddress);
+
+        String strCity;
+        if (etCityCC.getText().toString().trim().equals(""))
+            strCity = oAccount.CCCity;
+        else
+            strCity = etCityCC.getText().toString().trim();
+        params.put("CCCity", strCity);
+
+        String strState;
+        if (etStateCC.getText().toString().trim().equals(""))
+            strState = oAccount.CCState;
+        else
+            strState = etStateCC.getText().toString().trim();
+        params.put("CCState", strState);
+
+        String strZip;
+        if (etZipCC.getText().toString().trim().equals(""))
+            strZip = oAccount.CCZip;
+        else
+            strZip = etZipCC.getText().toString().trim();
+        params.put("CCZipCode", strZip);
+
+        params.put("MaxAmount", oSchool.CCMaxAmt);
+        params.put("MerchantNumber", String.valueOf(1));
+        params.put("UserName", oUser.UserName);
+        String url = oGlobals.URLBuilder("saveCreditCardInformation?", params);
+        String response = oGlobals.callJSON(url);
+        int ccResponse = 0;
+        try {
+
+            GsonBuilder gsonBuilder = new GsonBuilder();
+            gsonBuilder.setDateFormat("M/d/yy hh:mm a");
+            Gson gson = gsonBuilder.create();
+            //Sets what the the object will be deserialized too.
+            Type collectionType = new TypeToken<Integer>() {
+            }.getType();
+            ccResponse = gson.fromJson(response, collectionType);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return ccResponse;
+    }
+
+    //Deprecated
     public SoapPrimitive saveCreditCard() {
         SOAP_ACTION = "saveCreditCard";
         METHOD_NAME = "saveCreditCard";

@@ -232,7 +232,7 @@ public class Splash extends ActionBarActivity {
                 _appPrefs.saveAccountQuery(strQuery);
 
                 /**
-                 * Check if app is debuggin, if so loads an empty list so that the debugging goes
+                 * Check if app is debugging, if so loads an empty list so that the debugging goes
                  * faster and we don't have to wait forever.
                  */
                 boolean isBeingDebugged = android.os.Debug.isDebuggerConnected();
@@ -364,7 +364,7 @@ public class Splash extends ActionBarActivity {
             }
 
             return AccountsArray;
-           
+
         }
 
         protected void onPostExecute(ArrayList<Account> result) {

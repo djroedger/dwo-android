@@ -100,7 +100,7 @@ public class Enroll extends FragmentActivity implements
 
         objClassAdapter = inputClassAdapter;
 
-        getIntent().putStringArrayListExtra("Conflicks", conflictsArray);
+        getIntent().putStringArrayListExtra("Conflicts", conflictsArray);
 
         //Just the name of the dialog. Has no effect on it.
         enrollDialog.show(fm, "");

@@ -431,8 +431,10 @@ public class StudentEnrollFragment extends ListFragment {
 
         for (int i = 0; i < soap.getPropertyCount(); i++) {
 
-            //SoapObject conflickItem = (SoapObject) soap.getProperty(i);
-            if (soap.getProperty(i).equals("anyType{}"))
+            //SoapObject conflictItem = (SoapObject) soap.getProperty(i);
+            String response = soap.getPropertyAsString(i);
+            System.out.print(response);
+            if (response.equals("anyType{}") || response.equals("anyType"))
                 strConflictsArray.add(i, "");
             else
                 strConflictsArray.add(i, soap.getProperty(i).toString());
