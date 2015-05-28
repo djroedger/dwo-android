@@ -14,8 +14,8 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.akadasoftware.danceworksonline.R;
 import com.akadasoftware.danceworksonline.Classes.Account;
+import com.akadasoftware.danceworksonline.R;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -111,8 +111,8 @@ public class EditCreditCardDialog extends DialogFragment {
                 .setPositiveButton("Continue", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
-                        strCCNo = etCCNo.getText().toString();
-                        strCVV = etCVV.getText().toString();
+                        strCCNo = etCCNo.getText().toString().trim();
+                        strCVV = etCVV.getText().toString().trim();
                         strDate = spinnerMonth.getSelectedItem().toString() + spinnerYear.getSelectedItem().toString().substring(2);
 
                         //No blank fields

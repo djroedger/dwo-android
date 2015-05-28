@@ -340,7 +340,7 @@ public class Globals {
      * Property info's for the session b/c we use it in a spinner on several pages.
      */
 
-    public ArrayList<Session> getSessions(int intSchID, int intUserID, String UserGUID) {
+    public ArrayList<Session> ggets(int intSchID, int intUserID, String UserGUID) {
         String MethodName = "getSessions";
         SoapObject response = InvokeSessionMethod(Data.URL, MethodName, intSchID, intUserID, UserGUID);
         return RetrieveSessionsFromSoap(response);

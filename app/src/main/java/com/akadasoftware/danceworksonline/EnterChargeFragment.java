@@ -19,23 +19,19 @@ import com.akadasoftware.danceworksonline.Adapters.ChargeCodeAdapter;
 import com.akadasoftware.danceworksonline.Classes.Account;
 import com.akadasoftware.danceworksonline.Classes.AppPreferences;
 import com.akadasoftware.danceworksonline.Classes.ChargeCodes;
+import com.akadasoftware.danceworksonline.Classes.Globals;
 import com.akadasoftware.danceworksonline.Classes.User;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
-import org.ksoap2.SoapEnvelope;
-import org.ksoap2.serialization.MarshalFloat;
-import org.ksoap2.serialization.PropertyInfo;
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
-import org.ksoap2.serialization.SoapSerializationEnvelope;
-import org.ksoap2.transport.HttpTransportSE;
-import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.IOException;
+import java.lang.reflect.Type;
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 
 
 /**
@@ -53,7 +49,7 @@ import java.util.Calendar;
 public class EnterChargeFragment extends Fragment {
 
 
-    String SOAP_ACTION, METHOD_NAME, userGUID, strDate;
+    String SOAP_ACTION, METHOD_NAME, userGUID, strDate, chargeDate;
     int schID, userID;
 
 
@@ -72,6 +68,7 @@ public class EnterChargeFragment extends Fragment {
     Spinner ChargeCodeSpinner;
     Button btnCharge;
     Calendar cal;
+    Globals oGlobals;
 
     // Listeners for the interface used to handle the dialog pop-ups
     private onEditAmountDialog mListener;
@@ -93,6 +90,8 @@ public class EnterChargeFragment extends Fragment {
         int position = getArguments().getInt("Position");
 
         oAccount = arrayAccounts.get(position);
+
+        oGlobals = new Globals();
 
     }
 
@@ -263,9 +262,9 @@ public class EnterChargeFragment extends Fragment {
 
     public void setDate(Calendar calinput) {
         cal = calinput;
-        DateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy");
-        String today = dateFormat.format(cal.getTime());
-        tvDate.setText(today);
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        chargeDate = dateFormat.format(cal.getTime());
+        tvDate.setText(chargeDate);
     }
 
 
@@ -287,8 +286,7 @@ public class EnterChargeFragment extends Fragment {
 
         @Override
         protected ArrayList<ChargeCodes> doInBackground(Data... data) {
-            SoapObject codes = getChargeCodes();
-            return RetrieveChargeCodesFromSoap(codes);
+            return RetrieveChargeCodesFromSoap(getChargeCodes());
 
         }
 
@@ -300,67 +298,34 @@ public class EnterChargeFragment extends Fragment {
         }
     }
 
-    public SoapObject getChargeCodes() {
-        SOAP_ACTION = "getChargeCodes";
-        METHOD_NAME = "getChargeCodes";
-
-        SoapObject Request = new SoapObject(Data.NAMESPACE, METHOD_NAME);
-
-        schID = _appPrefs.getSchID();
-        userID = _appPrefs.getUserID();
-        userGUID = _appPrefs.getUserGUID();
-
-        PropertyInfo piWhere = new PropertyInfo();
-        piWhere.setName("Where");
-        piWhere.setValue(" where schid =" + schID);
-        Request.addProperty(piWhere);
-
-        PropertyInfo piUserID = new PropertyInfo();
-        piUserID.setName("UserID");
-        piUserID.setValue(userID);
-        Request.addProperty(piUserID);
-
-        PropertyInfo piUserGUID = new PropertyInfo();
-        piUserGUID.setName("UserGUID");
-        piUserGUID.setValue(userGUID);
-        Request.addProperty(piUserGUID);
-
-
-        SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(
-                SoapEnvelope.VER11);
-
-        envelope.dotNet = true;
-        envelope.setOutputSoapObject(Request);
-
-        SoapObject responseChargeCodes = null;
-        HttpTransportSE HttpTransport = new HttpTransportSE(Data.URL);
+    public ArrayList<ChargeCodes> getChargeCodes() {
+        String strWhere = " where schid = " + _appPrefs.getSchID();
+        HashMap<String, Object> params = new HashMap<String, Object>();
+        params.put("Where", strWhere);
+        params.put("UserID", String.valueOf(_appPrefs.getUserID()));
+        params.put("UserGUID", _appPrefs.getUserGUID());
+        String url = oGlobals.URLBuilder("getChargeCodes?", params);
+        String response = oGlobals.callJSON(url);
+        ArrayList<ChargeCodes> chargeCodesArray = new ArrayList<ChargeCodes>();
         try {
-            HttpTransport.call(SOAP_ACTION, envelope);
 
-            responseChargeCodes = (SoapObject) envelope.getResponse();
-
-
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            Toast toast = Toast.makeText(getActivity(), e.toString(),
-                    Toast.LENGTH_LONG);
-            toast.show();
-        } catch (XmlPullParserException e) {
-            // TODO Auto-generated catch block
-            Toast toast = Toast.makeText(getActivity(), e.toString(),
-                    Toast.LENGTH_LONG);
-            toast.show();
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            Toast toast = Toast.makeText(getActivity(), e.toString(),
-                    Toast.LENGTH_LONG);
-            toast.show();
+            GsonBuilder gsonBuilder = new GsonBuilder();
+            gsonBuilder.setDateFormat("M/d/yy hh:mm a");
+            Gson gson = gsonBuilder.create();
+            //Sets what the the object will be deserialized too.
+            Type collectionType = new TypeToken<ArrayList<ChargeCodes>>() {
+            }.getType();
+            chargeCodesArray = gson.fromJson(response, collectionType);
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
-        return responseChargeCodes;
+
+        return chargeCodesArray;
+
 
     }
 
-    public static ArrayList<ChargeCodes> RetrieveChargeCodesFromSoap(SoapObject soap) {
+    public static ArrayList<ChargeCodes> RetrieveChargeCodesFromSoap(ArrayList<ChargeCodes> result) {
 
         ArrayList<ChargeCodes> codes = new ArrayList<ChargeCodes>();
         ChargeCodes defaultCC = new ChargeCodes();
@@ -370,23 +335,9 @@ public class EnterChargeFragment extends Fragment {
         defaultCC.ChgID = 0;
         defaultCC.Amount = 0;
         codes.add(0, defaultCC);
-        for (int i = 0; i < soap.getPropertyCount(); i++) {
+        result.add(0, defaultCC);
 
-            SoapObject accountchargecodes = (SoapObject) soap.getProperty(i);
-
-            ChargeCodes chargeCode = new ChargeCodes();
-            for (int j = 0; j < accountchargecodes.getPropertyCount(); j++) {
-                chargeCode.setProperty(j, accountchargecodes.getProperty(j)
-                        .toString());
-                if (accountchargecodes.getProperty(j).equals("anyType{}")) {
-                    accountchargecodes.setProperty(j, "");
-                }
-
-            }
-            codes.add(i + 1, chargeCode);
-        }
-
-        return codes;
+        return result;
     }
 
     //Adds all items from the ChgDesc field to the spinner
@@ -438,17 +389,17 @@ public class EnterChargeFragment extends Fragment {
 
         } else if (oChargeCodes.Kind.equals("T") && Integer.parseInt(oChargeCodes.ChgNo) < 4) {
 
-            tvChangeAmount.setText("$" + String.valueOf(oAccount.MTuition));
+            tvChangeAmount.setText(String.valueOf(nf.format(oAccount.MTuition)));
             etDescription.setText(oChargeCodes.ChgDesc);
         } else {
-            tvChangeAmount.setText("$" + String.valueOf(oChargeCodes.Amount));
+            tvChangeAmount.setText(String.valueOf(nf.format(oChargeCodes.Amount)));
             etDescription.setText(oChargeCodes.ChgDesc);
         }
     }
 
 
     public class getChargeAmountAsync extends
-            AsyncTask<Data, Void, Float[]> {
+            AsyncTask<Data, Void, ArrayList<Float>> {
 
         protected void onPreExecute() {
             /**
@@ -460,26 +411,26 @@ public class EnterChargeFragment extends Fragment {
         }
 
         @Override
-        protected Float[] doInBackground(Data... data) {
-            SoapObject newCodes = null;
+        protected ArrayList<Float> doInBackground(Data... data) {
+            ArrayList<Float> arrayListOfAmounts = null;
 
             float ST1Rate = _appPrefs.getST1Rate();
             float ST2Rate = _appPrefs.getST2Rate();
-            newCodes = getChargeAmount(userID, userGUID, oChargeCodes.ChgID, oAccount.AcctID, oAccount.BillingFreq, Float.parseFloat(tvChangeAmount.getText().toString().substring(1, tvChangeAmount.length())),
+            float amount = Float.parseFloat(tvChangeAmount.getText().toString().substring(1, tvChangeAmount.length()));
+            arrayListOfAmounts = getChargeAmount(_appPrefs.getUserID(), _appPrefs.getUserGUID(), oChargeCodes.ChgID, oAccount.AcctID, oAccount.BillingFreq, amount,
                     oAccount.TuitionSel, oAccount.AccountFeeAmount, ST1Rate, ST2Rate);
-            return RetrieveChargeCodeFromSoap(newCodes);
-
+            return arrayListOfAmounts;
 
         }
 
 
-        protected void onPostExecute(Float[] result) {
+        protected void onPostExecute(ArrayList<Float> result) {
 
             NumberFormat format = NumberFormat.getCurrencyInstance();
             floatAmount = Float.parseFloat(tvChangeAmount.getText().toString().substring(1, tvChangeAmount.length()));
-            floatDiscAmount = result[0];
-            floatSTax1 = result[1];
-            floatSTax2 = result[2];
+            floatDiscAmount = result.get(0);
+            floatSTax1 = result.get(1);
+            floatSTax2 = result.get(2);
 
             Boolean discount = false;
             Boolean tax = false;
@@ -498,107 +449,37 @@ public class EnterChargeFragment extends Fragment {
         }
     }
 
-    public SoapObject getChargeAmount(int UserID, String UserGUID, int ChgID, int AcctID, int BillingFreq,
-                                      float Amount, int TuitionSel, float AccountFeeAmount, float ST1Rate, float ST2Rate) {
-
-        SOAP_ACTION = "getChargeAmount";
-        METHOD_NAME = "getChargeAmount";
-
-        SoapObject RequestCodes = new SoapObject(Data.NAMESPACE, METHOD_NAME);
-
-        PropertyInfo piUserID = new PropertyInfo();
-        piUserID.setName("UserID");
-        piUserID.setValue(UserID);
-        RequestCodes.addProperty(piUserID);
-
-        PropertyInfo piUserGUID = new PropertyInfo();
-        piUserGUID.setName("UserGUID");
-        piUserGUID.setValue(UserGUID);
-        RequestCodes.addProperty(piUserGUID);
-
-        PropertyInfo piChgID = new PropertyInfo();
-        piChgID.setName("ChgID");
-        piChgID.setValue(ChgID);
-        RequestCodes.addProperty(piChgID);
+    public ArrayList<Float> getChargeAmount(int UserID, String UserGUID, int ChgID, int AcctID, int BillingFreq,
+                                            float Amount, int TuitionSel, float AccountFeeAmount, float ST1Rate, float ST2Rate) {
 
 
-        PropertyInfo piAcctID = new PropertyInfo();
-        piAcctID.setName("AcctID");
-        piAcctID.setValue(AcctID);
-        RequestCodes.addProperty(piAcctID);
-
-        PropertyInfo piBillingFreq = new PropertyInfo();
-        piBillingFreq.setName("BillingFreq");
-        piBillingFreq.setValue(BillingFreq);
-        RequestCodes.addProperty(piBillingFreq);
-
-        PropertyInfo piAmount = new PropertyInfo();
-        piAmount.setName("Amount");
-        piAmount.setType(Float.class);
-        piAmount.setValue(Amount);
-        RequestCodes.addProperty(piAmount);
-
-        PropertyInfo piTuitionSEL = new PropertyInfo();
-        piTuitionSEL.setName("TuitionSel");
-        piTuitionSEL.setValue(TuitionSel);
-        RequestCodes.addProperty(piTuitionSEL);
-
-
-        PropertyInfo pitAccountFeeAmount = new PropertyInfo();
-        pitAccountFeeAmount.setName("AccountFeeAmount");
-        pitAccountFeeAmount.setType(Float.class);
-        pitAccountFeeAmount.setValue(AccountFeeAmount);
-        RequestCodes.addProperty(pitAccountFeeAmount);
-
-        PropertyInfo pitSt1Rate = new PropertyInfo();
-        pitSt1Rate.setName("ST1Rate");
-        pitSt1Rate.setType(Float.class);
-        pitSt1Rate.setValue(ST1Rate);
-        RequestCodes.addProperty(pitSt1Rate);
-
-        PropertyInfo piSt2Rate = new PropertyInfo();
-        piSt2Rate.setName("ST2Rate");
-        piSt2Rate.setType(Float.class);
-        piSt2Rate.setValue(ST2Rate);
-        RequestCodes.addProperty(piSt2Rate);
-
-        SoapSerializationEnvelope envelopeCodes = new SoapSerializationEnvelope(
-                SoapEnvelope.VER11);
-
-        MarshalFloat mf = new MarshalFloat();
-        mf.register(envelopeCodes);
-
-        envelopeCodes.dotNet = true;
-        envelopeCodes.setOutputSoapObject(RequestCodes);
-
-        SoapObject responseCodes = null;
-        HttpTransportSE HttpTransport = new HttpTransportSE(Data.URL);
+        HashMap<String, Object> params = new HashMap<String, Object>();
+        params.put("AcctID", String.valueOf(AcctID));
+        params.put("UserID", String.valueOf(UserID));
+        params.put("UserGUID", UserGUID);
+        params.put("ChgID", String.valueOf(ChgID));
+        params.put("BillingFreq", String.valueOf(BillingFreq));
+        params.put("Amount", String.valueOf(Amount));
+        params.put("TuitionSel", String.valueOf(TuitionSel));
+        params.put("AccountFeeAmount", String.valueOf(AccountFeeAmount));
+        params.put("ST1Rate", String.valueOf(ST1Rate));
+        params.put("ST2Rate", String.valueOf(ST2Rate));
+        String url = oGlobals.URLBuilder("getChargeAmount?", params);
+        String response = oGlobals.callJSON(url);
+        ArrayList<Float> result = new ArrayList<Float>();
         try {
-            HttpTransport.call(SOAP_ACTION, envelopeCodes);
 
-            responseCodes = (SoapObject) envelopeCodes.getResponse();
-
-
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            //Toast toast = Toast.makeText(getActivity(), e2.toString(), Toast.LENGTH_LONG);
-            //toast.show();
-            e.printStackTrace();
+            GsonBuilder gsonBuilder = new GsonBuilder();
+            gsonBuilder.setDateFormat("M/d/yy hh:mm a");
+            Gson gson = gsonBuilder.create();
+            Type collectionType = new TypeToken<ArrayList<Float>>() {
+            }.getType();
+            result = gson.fromJson(response, collectionType);
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
 
-        return responseCodes;
-    }
-
-
-    public static Float[] RetrieveChargeCodeFromSoap(SoapObject soap) {
-
-        Float[] codes = new Float[3];
-
-        codes[0] = Float.parseFloat(soap.getProperty(0).toString());
-        codes[1] = Float.parseFloat(soap.getProperty(1).toString());
-        codes[2] = Float.parseFloat(soap.getProperty(2).toString());
-
-        return codes;
+        return result;
     }
 
 
@@ -613,7 +494,7 @@ public class EnterChargeFragment extends Fragment {
 
         @Override
         protected Boolean doInBackground(Data... data) {
-            SoapPrimitive enterCharge = null;
+            Boolean enterCharge = null;
             float totalAmount = 0;
             float DiscAmount = 0;
             User user = _appPrefs.getUser();
@@ -629,11 +510,11 @@ public class EnterChargeFragment extends Fragment {
                 totalAmount = oChargeCodes.Amount;
 
 
-            enterCharge = EnterCharge(userID, userGUID, schID, oAccount.AcctID, strDate, oChargeCodes.ChgDesc,
+            enterCharge = EnterCharge(userID, userGUID, schID, oAccount.AcctID, chargeDate, oChargeCodes.ChgDesc,
                     oChargeCodes.GLNo, floatDiscAmount, totalAmount, oChargeCodes.Kind, oChargeCodes.Tax,
                     false, 0, oChargeCodes.PayOnline, 0, _appPrefs.getSessionID(), DiscAmount,
                     floatSTax1, floatSTax2, user.DisplayName);
-            return EnterChargeFromSoap(enterCharge);
+            return enterCharge;
 
 
         }
@@ -654,153 +535,51 @@ public class EnterChargeFragment extends Fragment {
         }
     }
 
-    public SoapPrimitive EnterCharge(int UserID, String UserGUID, int SchID, int AcctID, String ChgDate,
-                                     String ChgDesc, String GLNo, float Amount, float totalAmount,
-                                     String Kind, int STax, Boolean POSTrans, int POSInv, Boolean PayOnline,
-                                     int TransPostHistID, int SessionID, float DiscAmt, float STax1,
-                                     float STax2, String DisplayName) {
-
-        SOAP_ACTION = "enterCharge";
-        METHOD_NAME = "enterCharge";
-
-        SoapObject requestEnterCharge = new SoapObject(Data.NAMESPACE, METHOD_NAME);
-
-        PropertyInfo piUserID = new PropertyInfo();
-        piUserID.setName("UserID");
-        piUserID.setValue(UserID);
-        requestEnterCharge.addProperty(piUserID);
-
-        PropertyInfo piUserGUID = new PropertyInfo();
-        piUserGUID.setName("UserGUID");
-        piUserGUID.setValue(UserGUID);
-        requestEnterCharge.addProperty(piUserGUID);
-
-        PropertyInfo piSchID = new PropertyInfo();
-        piSchID.setName("SchID");
-        piSchID.setValue(SchID);
-        requestEnterCharge.addProperty(piSchID);
+    public Boolean EnterCharge(int UserID, String UserGUID, int SchID, int AcctID, String ChgDate,
+                               String ChgDesc, String GLNo, float Amount, float totalAmount,
+                               String Kind, int STax, Boolean POSTrans, int POSInv, Boolean PayOnline,
+                               int TransPostHistID, int SessionID, float DiscAmt, float STax1,
+                               float STax2, String DisplayName) {
 
 
-        PropertyInfo piAcctID = new PropertyInfo();
-        piAcctID.setName("AcctID");
-        piAcctID.setValue(AcctID);
-        requestEnterCharge.addProperty(piAcctID);
-
-        PropertyInfo piChgDate = new PropertyInfo();
-        piChgDate.setName("strChgDate");
-        piChgDate.setValue(ChgDate);
-        requestEnterCharge.addProperty(piChgDate);
-
-        PropertyInfo piChgDesc = new PropertyInfo();
-        piChgDesc.setName("ChgDesc");
-        piChgDesc.setValue(ChgDesc);
-        requestEnterCharge.addProperty(piChgDesc);
-
-        PropertyInfo piGLNo = new PropertyInfo();
-        piGLNo.setName("GLNo");
-        piGLNo.setValue(GLNo);
-        requestEnterCharge.addProperty(piGLNo);
-
-
-        PropertyInfo piAmount = new PropertyInfo();
-        piAmount.setName("Amount");
-        piAmount.setType(Float.class);
-        piAmount.setValue(Amount);
-        requestEnterCharge.addProperty(piAmount);
-
-        PropertyInfo piTotalAmount = new PropertyInfo();
-        piTotalAmount.setName("totalAmount");
-        piTotalAmount.setType(Float.class);
-        piTotalAmount.setValue(totalAmount);
-        requestEnterCharge.addProperty(piTotalAmount);
-
-        PropertyInfo piKind = new PropertyInfo();
-        piKind.setName("Kind");
-        piKind.setValue(Kind);
-        requestEnterCharge.addProperty(piKind);
-
-        PropertyInfo piSTax = new PropertyInfo();
-        piSTax.setName("STax");
-        piSTax.setValue(STax);
-        requestEnterCharge.addProperty(piSTax);
-
-        PropertyInfo piPOSTrans = new PropertyInfo();
-        piPOSTrans.setName("POSTrans");
-        piPOSTrans.setValue(POSTrans);
-        requestEnterCharge.addProperty(piPOSTrans);
-
-        PropertyInfo piPOSInv = new PropertyInfo();
-        piPOSInv.setName("POSInv");
-        piPOSInv.setValue(POSInv);
-        requestEnterCharge.addProperty(piPOSInv);
-
-        PropertyInfo piPayOnline = new PropertyInfo();
-        piPayOnline.setName("PayOnline");
-        piPayOnline.setValue(PayOnline);
-        requestEnterCharge.addProperty(piPayOnline);
-
-
-        PropertyInfo pitTransPostHistID = new PropertyInfo();
-        pitTransPostHistID.setName("TransPostHistID");
-        pitTransPostHistID.setValue(TransPostHistID);
-        requestEnterCharge.addProperty(pitTransPostHistID);
-
-        PropertyInfo piSessionID = new PropertyInfo();
-        piSessionID.setName("SessionID");
-        piSessionID.setValue(SessionID);
-        requestEnterCharge.addProperty(piSessionID);
-
-        PropertyInfo piDiscAmount = new PropertyInfo();
-        piDiscAmount.setName("DiscAmt");
-        piDiscAmount.setType(Float.class);
-        piDiscAmount.setValue(DiscAmt);
-        requestEnterCharge.addProperty(piDiscAmount);
-
-        PropertyInfo piStax1 = new PropertyInfo();
-        piStax1.setName("STax1");
-        piStax1.setType(Float.class);
-        piStax1.setValue(STax1);
-        requestEnterCharge.addProperty(piStax1);
-
-
-        PropertyInfo piSTax2 = new PropertyInfo();
-        piSTax2.setName("STax2");
-        piSTax2.setType(Float.class);
-        piSTax2.setValue(STax2);
-        requestEnterCharge.addProperty(piSTax2);
-
-        PropertyInfo piDisplayName = new PropertyInfo();
-        piDisplayName.setName("DisplayName");
-        piDisplayName.setValue(DisplayName);
-        requestEnterCharge.addProperty(piDisplayName);
-
-
-        SoapSerializationEnvelope envelopeEnterCharge = new SoapSerializationEnvelope(
-                SoapEnvelope.VER11);
-
-        MarshalFloat mf = new MarshalFloat();
-        mf.register(envelopeEnterCharge);
-
-        //MarshalDate md = new MarshalDate();
-        //md.register(envelopeCodes);
-
-        envelopeEnterCharge.dotNet = true;
-        envelopeEnterCharge.setOutputSoapObject(requestEnterCharge);
-
-        SoapPrimitive responseEnterCharge = null;
-        HttpTransportSE HttpTransport = new HttpTransportSE(Data.URL);
+        HashMap<String, Object> params = new HashMap<String, Object>();
+        params.put("AcctID", String.valueOf(AcctID));
+        params.put("UserID", String.valueOf(UserID));
+        params.put("UserGUID", UserGUID);
+        params.put("SchID", String.valueOf(SchID));
+        params.put("StrChgDate", ChgDate);
+        params.put("ChgDesc", ChgDesc);
+        params.put("GLNo", GLNo);
+        params.put("totalAmount", String.valueOf(totalAmount));
+        params.put("Amount", String.valueOf(Amount));
+        params.put("Kind", Kind);
+        params.put("STax", String.valueOf(STax));
+        params.put("POSTrans", String.valueOf(0));
+        params.put("POSInv", String.valueOf(POSInv));
+        params.put("PayOnline", String.valueOf(1));
+        params.put("TransPostHistID", String.valueOf(TransPostHistID));
+        params.put("SessionID", String.valueOf(SessionID));
+        params.put("DiscAmt", String.valueOf(DiscAmt));
+        params.put("STax1", String.valueOf(STax1));
+        params.put("STax2", String.valueOf(STax2));
+        params.put("DisplayName", DisplayName);
+        String url = oGlobals.URLBuilder("enterCharge?", params);
+        String response = oGlobals.callJSON(url);
+        Boolean postedCharge = null;
         try {
-            HttpTransport.call(SOAP_ACTION, envelopeEnterCharge);
 
-            responseEnterCharge = (SoapPrimitive) envelopeEnterCharge.getResponse();
-
-
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            GsonBuilder gsonBuilder = new GsonBuilder();
+            gsonBuilder.setDateFormat("M/d/yy hh:mm a");
+            Gson gson = gsonBuilder.create();
+            Type collectionType = new TypeToken<ArrayList<Boolean>>() {
+            }.getType();
+            postedCharge = Boolean.valueOf(response);
+            //postedCharge = gson.fromJson(response, collectionType);
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
 
-        return responseEnterCharge;
+        return postedCharge;
     }
 
     public void setTotalsDisplay(Boolean discount, Boolean tax) {
@@ -822,12 +601,6 @@ public class EnterChargeFragment extends Fragment {
         }
     }
 
-    public static Boolean EnterChargeFromSoap(SoapPrimitive soap) {
-
-        Boolean success = Boolean.parseBoolean(soap.toString());
-
-        return success;
-    }
 
     /**
      * This interface must be implemented by activities that contain this

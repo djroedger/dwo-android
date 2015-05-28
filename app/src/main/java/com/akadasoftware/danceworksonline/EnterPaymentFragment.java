@@ -22,18 +22,16 @@ import com.akadasoftware.danceworksonline.Classes.AppPreferences;
 import com.akadasoftware.danceworksonline.Classes.Globals;
 import com.akadasoftware.danceworksonline.Classes.School;
 import com.akadasoftware.danceworksonline.Classes.User;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
-import org.ksoap2.SoapEnvelope;
-import org.ksoap2.serialization.MarshalFloat;
-import org.ksoap2.serialization.PropertyInfo;
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapSerializationEnvelope;
-import org.ksoap2.transport.HttpTransportSE;
-
+import java.lang.reflect.Type;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 
 
 /**
@@ -49,7 +47,7 @@ public class EnterPaymentFragment extends Fragment {
     String SOAP_ACTION, METHOD_NAME, userGUID, PDate, PDesc, ChkNo, Kind, CCard, CCDate, CCAuth,
             PaymentID, ProcessData, RefNo, AuthCode, Invoice, AcqRefData, CardHolderName, CCToken,
             ccuser, ccpass, CardNumber, strUserName, CVV, FName, LName, Address, City, State, Zip,
-            CCExpire;
+            CCExpire, paymentDate;
 
     int schID, userID, chgid, acctID, ccRecNo, transPostHistID, sessionID, consentID, ccMerch, accountPosition;
 
@@ -61,7 +59,7 @@ public class EnterPaymentFragment extends Fragment {
     User oUser;
     Activity activity;
     ArrayList<Account> arrayAccounts;
-
+    Globals oGlobals;
 
     TextView tvDate, tvTitle, tvType, tvReference, tvDescription, tvAmount, tvChangeAmount;
     EditText etReference, etDescription;
@@ -140,14 +138,14 @@ public class EnterPaymentFragment extends Fragment {
 
         saveNewCreditCard = false;
         if (oAccount.CCTrail.equals(""))
-            CardNumber = " ";
+            CardNumber = "";
         else {
             for (int j = 4; j > 0; j--) {
                 CardNumber += oAccount.CCTrail.charAt(oAccount.CCTrail.length() - j);
             }
         }
 
-
+        oGlobals = new Globals();
 
     }
 
@@ -204,25 +202,32 @@ public class EnterPaymentFragment extends Fragment {
         btnPayment.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (tvChangeAmount.getText().toString().trim().length() > 0) {
-                    Float floatAmount = Float.parseFloat(tvChangeAmount.getText().toString().replace("$", ""));
-                    //Float floatAmount = Float.parseFloat(tvChangeAmount.getText().toString().substring(1, tvChangeAmount.length()));
-                    if (floatAmount == 0) {
+                if (typeSpinner.getSelectedItemPosition() == 0) {
+                    Toast toast = Toast.makeText(getActivity(), "Please select a charge type.",
+                            Toast.LENGTH_LONG);
+                    toast.show();
+                } else {
+                    if (tvChangeAmount.getText().toString().trim().length() > 0) {
+                        Float floatAmount = Float.parseFloat(tvChangeAmount.getText().toString().replace("$", ""));
+                        //Float floatAmount = Float.parseFloat(tvChangeAmount.getText().toString().substring(1, tvChangeAmount.length()));
+                        if (floatAmount == 0) {
+                            Toast toast = Toast.makeText(getActivity(), "Cannot enter a payment with an amount of $0.00 ",
+                                    Toast.LENGTH_LONG);
+                            toast.show();
+                        } else if (etDescription.getText().toString().trim().length() == 0) {
+                            Toast toast = Toast.makeText(getActivity(), "Cannot enter a payment with a blank description",
+                                    Toast.LENGTH_LONG);
+                            toast.show();
+                        } else {
+                            enterPaymentAsync enter = new enterPaymentAsync();
+                            enter.execute();
+                        }
+                    } else {
                         Toast toast = Toast.makeText(getActivity(), "Cannot enter a payment with an amount of $0.00 ",
                                 Toast.LENGTH_LONG);
                         toast.show();
-                    } else if (etDescription.getText().toString().trim().length() == 0) {
-                        Toast toast = Toast.makeText(getActivity(), "Cannot enter a payment with a blank description",
-                                Toast.LENGTH_LONG);
-                        toast.show();
-                    } else {
-                        enterPaymentAsync enter = new enterPaymentAsync();
-                        enter.execute();
                     }
-                } else {
-                    Toast toast = Toast.makeText(getActivity(), "Cannot enter a payment with an amount of $0.00 ",
-                            Toast.LENGTH_LONG);
-                    toast.show();
+
                 }
 
             }
@@ -332,10 +337,10 @@ public class EnterPaymentFragment extends Fragment {
 
     public void setDate(Calendar calinput) {
         cal = calinput;
-        DateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy");
-        String today = dateFormat.format(cal.getTime());
-        tvDate.setText(today);
-        PDate = today;
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        paymentDate = dateFormat.format(cal.getTime());
+        tvDate.setText(paymentDate);
+        PDate = paymentDate;
     }
 
     @Override
@@ -386,7 +391,7 @@ public class EnterPaymentFragment extends Fragment {
         }
 
         public String[] doInBackground(Data... data) {
-            SoapObject enterPayment = null;
+            ArrayList<String> enterPayment = null;
 
             School school = _appPrefs.getSchool();
             oUser = _appPrefs.getUser();
@@ -415,10 +420,9 @@ public class EnterPaymentFragment extends Fragment {
             floCCMax = school.CCMaxAmt;
             chgid = _appPrefs.getChgID();
 
-            enterPayment = EnterPayment(userID, userGUID, schID, acctID, PDate, PDesc, ChkNo, floAmount, Kind, CCard, CCDate, CCAuth,
-                    ccRecNo, POSTrans, transPostHistID, sessionID, consentID, PaymentID, ProcessData, RefNo,
-                    AuthCode, Invoice, AcqRefData, CardHolderName, CCToken, ccuser, ccpass, CardNumber,
-                    strUserName, ccMerch, floCCMax, CVV, FName, LName, Address, City, State, Zip, chgid);
+            enterPayment = EnterPayment(userID, userGUID, schID, acctID, PDate, PDesc, ChkNo, floAmount, Kind, CCard, CCDate,
+                    sessionID, consentID, ccuser, ccpass, CardNumber, strUserName, ccMerch, floCCMax,
+                    CVV, FName, LName, Address, City, State, Zip, chgid);
             return EnterPaymentFromSoap(enterPayment);
         }
 
@@ -438,8 +442,7 @@ public class EnterPaymentFragment extends Fragment {
             toast.show();
 
             if (result[1].length() > 0) {
-                Globals gloabal = new Globals();
-                gloabal.updateAccount(oAccount, accountPosition, activity);
+                oGlobals.updateAccount(oAccount, accountPosition, activity);
             }
         }
     }
@@ -451,267 +454,83 @@ public class EnterPaymentFragment extends Fragment {
      *
      * @return Returns a soap object which is basically a success or fail message.
      */
-    public SoapObject EnterPayment(int UserID, String UserGUID, int SchID, int AcctID, String PDate,
+    public ArrayList<String> EnterPayment(int UserID, String UserGUID, int SchID, int AcctID, String PDate,
                                    String PDesc, String ChkNo, float Amount, String Kind, String CCard,
-                                   String CCDate, String CCAuth, int CCRecNo, Boolean POSTrans,
-                                   int TransPostHistID, int SessionID, int ConsentID, String PaymentID,
-                                   String ProcessData, String RefNo, String AuthCode, String Invoice,
-                                   String AcqRefData, String CardHolderName, String CCToken, String ccuser,
+                                   String CCDate, int SessionID, int ConsentID, String ccuser,
                                    String ccpass, String CardNumber, String strUserName, int CCMerch, float CCMax, String CVV,
                                    String FName, String LName, String Address, String City, String State, String Zip, int ChgID) {
-        SOAP_ACTION = "enterPayment";
-        METHOD_NAME = "enterPayment";
 
-        SoapObject requestEnterPayment = new SoapObject(Data.NAMESPACE, METHOD_NAME);
+        int intSaveNewCard = 0;
+        if (saveNewCreditCard)
+            intSaveNewCard = 1;
+        else
+            intSaveNewCard = 0;
+        HashMap<String, Object> params = new HashMap<String, Object>();
+        params.put("AcctID", String.valueOf(AcctID));
+        params.put("UserID", String.valueOf(UserID));
+        params.put("UserGUID", UserGUID);
+        params.put("SchID", String.valueOf(SchID));
+        params.put("PDate", PDate);
+        params.put("PDesc", PDesc);
+        params.put("ChkNo", ChkNo);
+        params.put("Amount", String.valueOf(Amount));
+        params.put("Kind", Kind);
+        params.put("CCard", CCard);
+        params.put("CCDate", CCExpire);
+        params.put("SessionID", String.valueOf(SessionID));
+        params.put("ConsentID", String.valueOf(ConsentID));
+        params.put("ccuser", ccuser);
+        params.put("ccpass", ccpass);
+        params.put("CardNumber", CardNumber);
+        params.put("strUserName", strUserName);
+        params.put("CCMerch", String.valueOf(CCMerch));
+        params.put("CCMaxAmount", String.valueOf(CCMax));
+        params.put("CVV", CVV);
+        params.put("LName", LName);
+        params.put("FName", FName);
+        params.put("Address", Address);
+        params.put("City", City);
+        params.put("State", State);
+        params.put("Zip", Zip);
+        params.put("saveCard", String.valueOf(intSaveNewCard));
+        params.put("ChgID", String.valueOf(ChgID));
 
-        PropertyInfo piUserID = new PropertyInfo();
-        piUserID.setName("UserID");
-        piUserID.setValue(UserID);
-        requestEnterPayment.addProperty(piUserID);
-
-        PropertyInfo piUserGUID = new PropertyInfo();
-        piUserGUID.setName("UserGUID");
-        piUserGUID.setValue(UserGUID);
-        requestEnterPayment.addProperty(piUserGUID);
-
-        PropertyInfo piSchID = new PropertyInfo();
-        piSchID.setName("SchID");
-        piSchID.setValue(SchID);
-        requestEnterPayment.addProperty(piSchID);
-
-
-        PropertyInfo piAcctID = new PropertyInfo();
-        piAcctID.setName("AcctID");
-        piAcctID.setValue(AcctID);
-        requestEnterPayment.addProperty(piAcctID);
-
-        PropertyInfo piPDate = new PropertyInfo();
-        piPDate.setName("PDate");
-        piPDate.setValue(PDate);
-        requestEnterPayment.addProperty(piPDate);
-
-        PropertyInfo piPDesc = new PropertyInfo();
-        piPDesc.setName("PDesc");
-        piPDesc.setValue(PDesc);
-        requestEnterPayment.addProperty(piPDesc);
-
-        PropertyInfo piChkNo = new PropertyInfo();
-        piChkNo.setName("ChkNo");
-        piChkNo.setValue(ChkNo);
-        requestEnterPayment.addProperty(piChkNo);
-
-
-        PropertyInfo piAmount = new PropertyInfo();
-        piAmount.setName("Amount");
-        piAmount.setType(Float.class);
-        piAmount.setValue(Amount);
-        requestEnterPayment.addProperty(piAmount);
-
-        PropertyInfo piKind = new PropertyInfo();
-        piKind.setName("Kind");
-        piKind.setValue(Kind);
-        requestEnterPayment.addProperty(piKind);
-
-        PropertyInfo piCCard = new PropertyInfo();
-        piCCard.setName("CCard");
-        piCCard.setValue(CCard);
-        requestEnterPayment.addProperty(piCCard);
-
-        PropertyInfo piCCDate = new PropertyInfo();
-        piCCDate.setName("CCDate");
-        piCCDate.setValue(CCExpire);
-        requestEnterPayment.addProperty(piCCDate);
-
-        PropertyInfo piCCAuth = new PropertyInfo();
-        piCCAuth.setName("CCAuth");
-        piCCAuth.setValue("");
-        requestEnterPayment.addProperty(piCCAuth);
-
-
-        PropertyInfo piCCRecNo = new PropertyInfo();
-        piCCRecNo.setName("CCRecNo");
-        piCCRecNo.setValue(0);
-        requestEnterPayment.addProperty(piCCRecNo);
-
-        PropertyInfo piPOSTrans = new PropertyInfo();
-        piPOSTrans.setName("POSTrans");
-        piPOSTrans.setValue(POSTrans);
-        requestEnterPayment.addProperty(piPOSTrans);
-
-
-        PropertyInfo piTransPostHistID = new PropertyInfo();
-        piTransPostHistID.setName("TransPostHistID");
-        piTransPostHistID.setValue(0);
-        requestEnterPayment.addProperty(piTransPostHistID);
-
-        PropertyInfo piSessionID = new PropertyInfo();
-        piSessionID.setName("SessionID");
-        piSessionID.setValue(SessionID);
-        requestEnterPayment.addProperty(piSessionID);
-
-        PropertyInfo piConsentID = new PropertyInfo();
-        piConsentID.setName("ConsentID");
-        piConsentID.setValue(ConsentID);
-        requestEnterPayment.addProperty(piConsentID);
-
-        PropertyInfo piPaymentID = new PropertyInfo();
-        piPaymentID.setName("PaymentID");
-        piPaymentID.setValue("");
-        requestEnterPayment.addProperty(piPaymentID);
-
-
-        PropertyInfo piProcessData = new PropertyInfo();
-        piProcessData.setName("ProcessData");
-        piProcessData.setValue("");
-        requestEnterPayment.addProperty(piProcessData);
-
-        PropertyInfo piRefNo = new PropertyInfo();
-        piRefNo.setName("RefNo");
-        piRefNo.setValue("");
-        requestEnterPayment.addProperty(piRefNo);
-
-        PropertyInfo piAuthCode = new PropertyInfo();
-        piAuthCode.setName("AuthCode");
-        piAuthCode.setValue("");
-        requestEnterPayment.addProperty(piAuthCode);
-
-        PropertyInfo piInvoice = new PropertyInfo();
-        piInvoice.setName("Invoice");
-        piInvoice.setValue("");
-        requestEnterPayment.addProperty(piInvoice);
-
-
-        PropertyInfo piAcqRefData = new PropertyInfo();
-        piAcqRefData.setName("AcqRefData");
-        piAcqRefData.setValue("");
-        requestEnterPayment.addProperty(piAcqRefData);
-
-        PropertyInfo piCardHolderName = new PropertyInfo();
-        piCardHolderName.setName("CardHolderName");
-        piCardHolderName.setValue("");
-        requestEnterPayment.addProperty(piCardHolderName);
-
-        PropertyInfo piCCToken = new PropertyInfo();
-        piCCToken.setName("CCToken");
-        piCCToken.setValue("");
-        requestEnterPayment.addProperty(piCCToken);
-
-        PropertyInfo piCCUser = new PropertyInfo();
-        piCCUser.setName("ccuser");
-        piCCUser.setValue(ccuser);
-        requestEnterPayment.addProperty(piCCUser);
-
-        PropertyInfo piCCPass = new PropertyInfo();
-        piCCPass.setName("ccpass");
-        piCCPass.setValue(ccpass);
-        requestEnterPayment.addProperty(piCCPass);
-
-        PropertyInfo piCardNumber = new PropertyInfo();
-        piCardNumber.setName("CardNumber");
-        piCardNumber.setValue(CardNumber);
-        requestEnterPayment.addProperty(piCardNumber);
-
-
-        PropertyInfo piStrUserName = new PropertyInfo();
-        piStrUserName.setName("strUserName");
-        piStrUserName.setValue(strUserName);
-        requestEnterPayment.addProperty(piStrUserName);
-
-        PropertyInfo piCCMerch = new PropertyInfo();
-        piCCMerch.setName("CCMerch");
-        piCCMerch.setValue(CCMerch);
-        requestEnterPayment.addProperty(piCCMerch);
-
-        PropertyInfo piCCMaxAmount = new PropertyInfo();
-        piCCMaxAmount.setName("CCMaxAmount");
-        piCCMaxAmount.setType(Float.class);
-        piCCMaxAmount.setValue(CCMax);
-        requestEnterPayment.addProperty(piCCMaxAmount);
-
-        PropertyInfo piCVV = new PropertyInfo();
-        piCVV.setName("CVV");
-        piCVV.setValue(CVV);
-        requestEnterPayment.addProperty(piCVV);
-
-        PropertyInfo piFName = new PropertyInfo();
-        piFName.setName("FName");
-        piFName.setValue(FName);
-        requestEnterPayment.addProperty(piFName);
-
-
-        PropertyInfo piLName = new PropertyInfo();
-        piLName.setName("LName");
-        piLName.setValue(LName);
-        requestEnterPayment.addProperty(piLName);
-
-        PropertyInfo piAddress = new PropertyInfo();
-        piAddress.setName("Address");
-        piAddress.setValue(Address);
-        requestEnterPayment.addProperty(piAddress);
-
-        PropertyInfo piCity = new PropertyInfo();
-        piCity.setName("City");
-        piCity.setValue(City);
-        requestEnterPayment.addProperty(piCity);
-
-        PropertyInfo piState = new PropertyInfo();
-        piState.setName("State");
-        piState.setValue(State);
-        requestEnterPayment.addProperty(piState);
-
-        PropertyInfo piZip = new PropertyInfo();
-        piZip.setName("Zip");
-        piZip.setValue(Zip);
-        requestEnterPayment.addProperty(piZip);
-
-        PropertyInfo piSaveCard = new PropertyInfo();
-        piSaveCard.setName("saveCard");
-        piSaveCard.setValue(saveNewCreditCard);
-        requestEnterPayment.addProperty(piSaveCard);
-
-        PropertyInfo piChgID = new PropertyInfo();
-        piChgID.setName("ChgID");
-        piChgID.setValue(ChgID);
-        requestEnterPayment.addProperty(piChgID);
-
-        SoapSerializationEnvelope envelopePayment = new SoapSerializationEnvelope(
-                SoapEnvelope.VER11);
-
-        MarshalFloat mf = new MarshalFloat();
-        mf.register(envelopePayment);
-
-        envelopePayment.dotNet = true;
-        envelopePayment.setOutputSoapObject(requestEnterPayment);
-
-        SoapObject responsePayment = null;
-        HttpTransportSE HttpTransport = new HttpTransportSE("http://app.akadasoftware.com/MobileAppWebService/Android.asmx");
+        String url = oGlobals.URLBuilder("enterPayment?", params);
+        String response = oGlobals.callJSON(url);
+        ArrayList<String> result = new ArrayList<String>();
         try {
-            HttpTransport.call(SOAP_ACTION, envelopePayment);
 
-            responsePayment = (SoapObject) envelopePayment.getResponse();
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
+            GsonBuilder gsonBuilder = new GsonBuilder();
+            gsonBuilder.setDateFormat("M/d/yy hh:mm a");
+            Gson gson = gsonBuilder.create();
+            Type collectionType = new TypeToken<ArrayList<String>>() {
+            }.getType();
+            result = gson.fromJson(response, collectionType);
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
 
-        return responsePayment;
+        return result;
+
+
     }
 
 
-    public String[] EnterPaymentFromSoap(SoapObject soap) {
+    public String[] EnterPaymentFromSoap(ArrayList<String> stringResponse) {
 
 
         String[] response = new String[2];
-        if (soap.getProperty(0).toString() == "string : Result: Declined - FAILED ERROR CODE: 999 - Invalid Credit Card Number TR: 0") {
+        if (stringResponse.get(0).toString() == "string : Result: Declined - FAILED ERROR CODE: 999 - Invalid Credit Card Number TR: 0") {
             response[0] = "Payment not submitted.";
-        } else
-            response[0] = soap.getProperty(0).toString();
+        } else {
+            response[0] = stringResponse.get(0).toString();
+            return response;
 
-        if (soap.getProperty(1).toString() == "anyType{}" || soap.getProperty(1).toString().isEmpty()) {
+        }
+        if (stringResponse.get(1).toString() == "anyType{}" || stringResponse.get(1).toString().isEmpty()) {
             response[1] = "Card not saved.";
         } else
-            response[1] = soap.getProperty(1).toString();
+            response[1] = stringResponse.get(1).toString();
 
         return response;
     }

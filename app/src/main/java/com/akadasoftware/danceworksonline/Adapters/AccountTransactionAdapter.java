@@ -133,7 +133,7 @@ public class AccountTransactionAdapter extends ArrayAdapter<AccountTransactions>
             strType = "Credit";
 
         } else {
-            strType = "I have no freaking clue";
+            strType = "Error.";
 
         }
 

@@ -347,7 +347,7 @@ public class Splash extends ActionBarActivity {
             params.put("SchID", String.valueOf(_appPrefs.getSchID()));
             params.put("UserID", String.valueOf(_appPrefs.getUserID()));
             params.put("UserGUID", _appPrefs.getUserGUID());
-            String url = oGlobals.URLBuilder("getAccountsJS?", params);
+            String url = oGlobals.URLBuilder("getAccounts?", params);
             String response = oGlobals.callJSON(url);
             ArrayList<Account> AccountsArray = new ArrayList<Account>();
             try {

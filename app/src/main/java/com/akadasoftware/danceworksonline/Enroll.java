@@ -133,7 +133,7 @@ public class Enroll extends FragmentActivity implements
 
 
     /**
-     * Places student on waitlist
+     * Places student on wait list
      */
     private class WaitListStudentAsync extends
             AsyncTask<Globals.Data, Void, Integer> {
@@ -141,13 +141,13 @@ public class Enroll extends FragmentActivity implements
         ProgressDialog progress;
 
         protected void onPreExecute() {
-            progress = ProgressDialog.show(Enroll.this, "Parsing the Internet", "Accessing WaitList...", true);
+            progress = ProgressDialog.show(Enroll.this, "Placing Student on wait list", "Accessing WaitList...", true);
         }
 
         @Override
         protected Integer doInBackground(Globals.Data... data) {
             /**
-             * Placing student on waitlist
+             * Placing student on wait list
              *
              */
             return oGlobals.placeStudentOnWaitList(_appPrefs, globalSchoolClasses, globalStudent);
@@ -156,10 +156,10 @@ public class Enroll extends FragmentActivity implements
         protected void onPostExecute(Integer result) {
             progress.dismiss();
             if (result > 0) {
-                Toast toast = Toast.makeText(Enroll.this, "The student was placed on the waitlist", Toast.LENGTH_LONG);
+                Toast toast = Toast.makeText(Enroll.this, "The student was placed on the wait list", Toast.LENGTH_LONG);
                 toast.show();
                 /**
-                 * Returns new WatiID
+                 * Returns new WaitID
                  */
                 globalSchoolClasses.WaitID = result;
                 globalSchoolClasses.EnrollmentStatus = 3;
@@ -167,7 +167,7 @@ public class Enroll extends FragmentActivity implements
                 objClassAdapter.replaceSchoolClass(globalSchoolClasses, intClassPosition);
 
             } else {
-                Toast toast = Toast.makeText(Enroll.this, "The student was not placed on the waitlist", Toast.LENGTH_LONG);
+                Toast toast = Toast.makeText(Enroll.this, "The student was not placed on the wait list", Toast.LENGTH_LONG);
                 toast.show();
             }
         }
@@ -177,7 +177,6 @@ public class Enroll extends FragmentActivity implements
     /**
      * Enrolls a student in a class
      *
-
      * @return Integer greater than 0 means success
      */
     private class EnrollStudentAsync extends

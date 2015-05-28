@@ -25,6 +25,7 @@ import org.ksoap2.serialization.SoapSerializationEnvelope;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 
 import uk.co.senab.actionbarpulltorefresh.extras.actionbarcompat.PullToRefreshLayout;
@@ -169,7 +170,7 @@ public class AccountTransactionsFragment extends ListFragment {
                 .listener(new OnRefreshListener() {
                     @Override
                     public void onRefreshStarted(View view) {
-                        Toast toast = Toast.makeText(activity, "Refreshing :)"
+                        Toast toast = Toast.makeText(activity, "Refreshing."
                                 , Toast.LENGTH_SHORT);
                         toast.show();
                         getAccountTransactions trans = new getAccountTransactions();
@@ -270,6 +271,7 @@ public class AccountTransactionsFragment extends ListFragment {
             transAdapter = new AccountTransactionAdapter(getActivity(),
                     R.layout.item_transactionlist, TransactionArray);
             setListAdapter(transAdapter);
+            Collections.reverse(TransactionArray);
             transAdapter.setNotifyOnChange(true);
 
         }
