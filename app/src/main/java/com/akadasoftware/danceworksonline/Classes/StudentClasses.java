@@ -14,7 +14,7 @@ public class StudentClasses implements KvmSerializable {
 
     public float Tuition, Discount;
 
-    public Boolean Recital, Edit, MultiDay, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday, OLReg;
+    public Boolean Recital, Edit, Multiday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday, OLReg;
 
     public String ClType, ClLevel, ClRoom, ClDay, ClDescription, ClStart, ClStop, ClInstructor, ClKey, ClWait;
 
@@ -42,7 +42,7 @@ public class StudentClasses implements KvmSerializable {
         edit = Edit;
         length = Length;
         cltchid = ClTchID;
-        multiday = MultiDay;
+        multiday = Multiday;
         monday = Monday;
         tuesday = Tuesday;
         wednesday = Wednesday;
@@ -95,7 +95,7 @@ public class StudentClasses implements KvmSerializable {
             case 13:
                 return ClTchID;
             case 14:
-                return MultiDay;
+                return Multiday;
             case 15:
                 return Monday;
             case 16:
@@ -200,7 +200,7 @@ public class StudentClasses implements KvmSerializable {
                 break;
             case 14:
                 info.type = PropertyInfo.STRING_CLASS;
-                info.name = "MultiDay";
+                info.name = "Multiday";
                 break;
             case 15:
                 info.type = PropertyInfo.STRING_CLASS;
@@ -350,7 +350,7 @@ public class StudentClasses implements KvmSerializable {
                 ClTchID = Integer.parseInt(value.toString());
                 break;
             case 14:
-                MultiDay = Boolean.parseBoolean(value.toString());
+                Multiday = Boolean.parseBoolean(value.toString());
                 break;
             case 15:
                 Monday = Boolean.parseBoolean(value.toString());

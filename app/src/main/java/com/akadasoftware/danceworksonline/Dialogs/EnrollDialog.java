@@ -32,20 +32,11 @@ public class EnrollDialog extends DialogFragment {
     SchoolClasses objSchoolClasses;
     Student objStudent;
     View view;
+    EnrollDialogListener dialogListener;
 
     public EnrollDialog() {
 
     }
-
-    public interface EnrollDialogListener {
-        public void onEnrollDialogPositiveClick(SchoolClasses oSchoolClasses, Student oStudent, int position);
-
-        public void onEnrollDialogNuetralClick(SchoolClasses oSchoolClasses, Student oStudent
-                , int position);
-    }
-
-
-    EnrollDialogListener dialogListener;
 
     public void onAttach(Activity activity) {
         super.onAttach(activity);
@@ -158,7 +149,7 @@ public class EnrollDialog extends DialogFragment {
         tvDescription.setText(objSchoolClasses.ClDescription);
         tvInstructor.setText(objSchoolClasses.ClInstructor);
 
-        if (objSchoolClasses.MultiDay) {
+        if (objSchoolClasses.Multiday) {
             if (objSchoolClasses.Monday) {
                 Day = "Mon";
             }
@@ -315,6 +306,13 @@ public class EnrollDialog extends DialogFragment {
         }
 
         return builder.create();
+    }
+
+    public interface EnrollDialogListener {
+        void onEnrollDialogPositiveClick(SchoolClasses oSchoolClasses, Student oStudent, int position);
+
+        void onEnrollDialogNuetralClick(SchoolClasses oSchoolClasses, Student oStudent
+                , int position);
     }
 
 }

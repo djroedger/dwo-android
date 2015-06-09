@@ -30,7 +30,6 @@ import java.util.ArrayList;
  * Created by Kyle on 7/21/2014.
  */
 public class ClassEnrollFragment extends ListFragment {
-    private AppPreferences _appPrefs;
     String METHOD_NAME = "";
     String SOAP_ACTION = "";
     Activity activity;
@@ -41,12 +40,10 @@ public class ClassEnrollFragment extends ListFragment {
     Session session;
     int SessionID, position, positionOfClass;
     Globals oGlobals;
-
     ArrayList<SchoolClasses> schoolClassesArray = new ArrayList<SchoolClasses>();
     ArrayList<Student> studentsArray = new ArrayList<Student>();
     ArrayList<String> conflictsArray = new ArrayList<String>();
-
-
+    private AppPreferences _appPrefs;
     private SchoolClassAdapter classAdapter;
 
 
@@ -60,6 +57,44 @@ public class ClassEnrollFragment extends ListFragment {
         args.putInt("Position", position);
         fragment.setArguments(args);
         return fragment;
+    }
+
+    public static SoapObject GetSoapObject(String MethodName) {
+        return new SoapObject(Globals.Data.NAMESPACE, MethodName);
+    }
+
+    public static SoapObject MakeConflictCall(String URL,
+                                              SoapSerializationEnvelope envelope, String NAMESPACE,
+                                              String METHOD_NAME) {
+        HttpTransportSE HttpTransport = new HttpTransportSE(URL);
+        SoapObject response = null;
+        try {
+            //envelope.addMapping(Globals.Data.NAMESPACE, "SchoolClasses",new SchoolClasses().getClass());
+            HttpTransport.call(METHOD_NAME, envelope);
+            //envelopeOutput = envelope;
+            response = (SoapObject) envelope.getResponse();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return response;
+    }
+
+    public static ArrayList<String> RetrieveConflictsFromSoap(SoapObject soap) {
+
+        ArrayList<String> strConflictsArray = new ArrayList<String>();
+
+        for (int i = 0; i < soap.getPropertyCount(); i++) {
+
+            //SoapObject conflickItem = (SoapObject) soap.getProperty(i);
+            if (soap.getProperty(i).equals("anyType{}"))
+                strConflictsArray.add(i, "");
+            else
+                strConflictsArray.add(i, soap.getProperty(i).toString());
+
+        }
+
+        return strConflictsArray;
     }
 
     public void onCreate(Bundle savedInstanceState) {
@@ -106,61 +141,12 @@ public class ClassEnrollFragment extends ListFragment {
         checkConflicts.execute();
     }
 
-
-    /**
-     * Gets list of Classes, runs in onpost of session to ensure we have a session id
-     */
-    public class getStudentClassesAsync extends
-            AsyncTask<Globals.Data, Void, ArrayList<SchoolClasses>> {
-
-        @Override
-        protected ArrayList<SchoolClasses> doInBackground(Globals.Data... data) {
-
-
-            return oGlobals.getClasses(_appPrefs, oSchool.SessionID, oStudent.StuID, oUser.StaffID);
-        }
-
-        protected void onPostExecute(ArrayList<SchoolClasses> result) {
-            schoolClassesArray = result;
-            _appPrefs.saveSchoolClassList(schoolClassesArray);
-
-            classAdapter = new SchoolClassAdapter(activity,
-                    R.layout.item_studentclass, schoolClassesArray);
-            setListAdapter(classAdapter);
-            classAdapter.notifyDataSetChanged();
-        }
-    }
-
-    /**
-     * Checking if class that is to be enrolled conflicks with any other previously registered
-     * Classes
-     */
-    public class checkClassConflicts extends AsyncTask<Globals.Data, Void, ArrayList<String>> {
-        @Override
-        protected ArrayList<String> doInBackground(Globals.Data... data) {
-
-            return CheckConflicts();
-        }
-
-        protected void onPostExecute(ArrayList<String> result) {
-
-            conflictsArray = result;
-            //dialogListener.onEnrollDialog(oSchoolClass, oStudent, conflictsArray, positionOfClass, classAdapter);
-
-        }
-    }
-
     public ArrayList<String> CheckConflicts() {
         String MethodName = "checkClassEnrollment";
         SoapObject response = InvokeEnrollmentMethod(Globals.Data.URL, MethodName);
         return RetrieveConflictsFromSoap(response);
 
     }
-
-    public static SoapObject GetSoapObject(String MethodName) {
-        return new SoapObject(Globals.Data.NAMESPACE, MethodName);
-    }
-
 
     public SoapObject InvokeEnrollmentMethod(String URL, String MethodName) {
 
@@ -199,7 +185,7 @@ public class ClassEnrollFragment extends ListFragment {
 
         PropertyInfo piMultiDay = new PropertyInfo();
         piMultiDay.setName("boolMultiDay");
-        piMultiDay.setValue(oSchoolClass.MultiDay);
+        piMultiDay.setValue(oSchoolClass.Multiday);
         request.addProperty(piMultiDay);
 
         PropertyInfo piMonday = new PropertyInfo();
@@ -264,38 +250,47 @@ public class ClassEnrollFragment extends ListFragment {
         return MakeConflictCall(URL, envelope, Globals.Data.NAMESPACE, MethodName);
     }
 
-    public static SoapObject MakeConflictCall(String URL,
-                                              SoapSerializationEnvelope envelope, String NAMESPACE,
-                                              String METHOD_NAME) {
-        HttpTransportSE HttpTransport = new HttpTransportSE(URL);
-        SoapObject response = null;
-        try {
-            //envelope.addMapping(Globals.Data.NAMESPACE, "SchoolClasses",new SchoolClasses().getClass());
-            HttpTransport.call(METHOD_NAME, envelope);
-            //envelopeOutput = envelope;
-            response = (SoapObject) envelope.getResponse();
+    /**
+     * Gets list of Classes, runs in onpost of session to ensure we have a session id
+     */
+    public class getStudentClassesAsync extends
+            AsyncTask<Globals.Data, Void, ArrayList<SchoolClasses>> {
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        @Override
+        protected ArrayList<SchoolClasses> doInBackground(Globals.Data... data) {
+
+
+            return oGlobals.getClasses(_appPrefs, oSchool.SessionID, oStudent.StuID, oUser.StaffID);
         }
-        return response;
+
+        protected void onPostExecute(ArrayList<SchoolClasses> result) {
+            schoolClassesArray = result;
+            _appPrefs.saveSchoolClassList(schoolClassesArray);
+
+            classAdapter = new SchoolClassAdapter(activity,
+                    R.layout.item_studentclass, schoolClassesArray);
+            setListAdapter(classAdapter);
+            classAdapter.notifyDataSetChanged();
+        }
     }
 
-    public static ArrayList<String> RetrieveConflictsFromSoap(SoapObject soap) {
+    /**
+     * Checking if class that is to be enrolled conflicks with any other previously registered
+     * Classes
+     */
+    public class checkClassConflicts extends AsyncTask<Globals.Data, Void, ArrayList<String>> {
+        @Override
+        protected ArrayList<String> doInBackground(Globals.Data... data) {
 
-        ArrayList<String> strConflictsArray = new ArrayList<String>();
-
-        for (int i = 0; i < soap.getPropertyCount(); i++) {
-
-            //SoapObject conflickItem = (SoapObject) soap.getProperty(i);
-            if (soap.getProperty(i).equals("anyType{}"))
-                strConflictsArray.add(i, "");
-            else
-                strConflictsArray.add(i, soap.getProperty(i).toString());
-
+            return CheckConflicts();
         }
 
-        return strConflictsArray;
+        protected void onPostExecute(ArrayList<String> result) {
+
+            conflictsArray = result;
+            //dialogListener.onEnrollDialog(oSchoolClass, oStudent, conflictsArray, positionOfClass, classAdapter);
+
+        }
     }
 
 

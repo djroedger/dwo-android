@@ -37,7 +37,6 @@ import java.util.ArrayList;
  */
 public class StudentEnrollFragment extends ListFragment {
 
-    private AppPreferences _appPrefs;
     String METHOD_NAME = "";
     String SOAP_ACTION = "";
     Activity activity;
@@ -48,32 +47,21 @@ public class StudentEnrollFragment extends ListFragment {
     Session session;
     int SessionID, position, positionOfClass;
     Globals oGlobals;
-
     Button btnDone;
-
-
     ArrayList<SchoolClasses> schoolClassesArray = new ArrayList<SchoolClasses>();
-
     ArrayList<String> conflictsArray = new ArrayList<String>();
-
     ArrayList<Student> studentsArray = new ArrayList<Student>();
     ArrayList<Session> sessionArrayList = new ArrayList<Session>();
     SessionAdapter sessionAdapter;
     ViewGroup objContainer;
     View view;
-
     Spinner sessionStudentEnrollSpinner;
+    private AppPreferences _appPrefs;
     private SchoolClassAdapter classAdapter;
 
     private onEnrollDialog dialogListener;
     //private OnStudentEnrollListener enrollListener;
 
-
-    public interface onEnrollDialog {
-
-        public void onEnrollDialog(SchoolClasses objSchoolClass, Student oStudent,
-                                   ArrayList<String> conflictsArray, int positionOfClass, SchoolClassAdapter classAdapter);
-    }
 
     /**
      * Handles by enrolldialog
@@ -82,7 +70,6 @@ public class StudentEnrollFragment extends ListFragment {
      */
     public StudentEnrollFragment() {
     }
-
 
     /**
      * @param position of student in arraylist
@@ -94,6 +81,46 @@ public class StudentEnrollFragment extends ListFragment {
         args.putInt("Position", position);
         fragment.setArguments(args);
         return fragment;
+    }
+
+    public static SoapObject GetSoapObject(String MethodName) {
+        return new SoapObject(Globals.Data.NAMESPACE, MethodName);
+    }
+
+    public static SoapObject MakeConflictCall(String URL,
+                                              SoapSerializationEnvelope envelope, String NAMESPACE,
+                                              String METHOD_NAME) {
+        HttpTransportSE HttpTransport = new HttpTransportSE(URL);
+        SoapObject response = null;
+        try {
+            //envelope.addMapping(Globals.Data.NAMESPACE, "SchoolClasses",new SchoolClasses().getClass());
+            HttpTransport.call(METHOD_NAME, envelope);
+            //envelopeOutput = envelope;
+            response = (SoapObject) envelope.getResponse();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return response;
+    }
+
+    public static ArrayList<String> RetrieveConflictsFromSoap(SoapObject soap) {
+
+        ArrayList<String> strConflictsArray = new ArrayList<String>();
+
+        for (int i = 0; i < soap.getPropertyCount(); i++) {
+
+            //SoapObject conflictItem = (SoapObject) soap.getProperty(i);
+            String response = soap.getPropertyAsString(i);
+            System.out.print(response);
+            if (response.equals("anyType{}") || response.equals("anyType"))
+                strConflictsArray.add(i, "");
+            else
+                strConflictsArray.add(i, soap.getProperty(i).toString());
+
+        }
+
+        return strConflictsArray;
     }
 
     public void onCreate(Bundle savedInstanceState) {
@@ -166,7 +193,6 @@ public class StudentEnrollFragment extends ListFragment {
         dialogListener = null;
     }
 
-
     /**
      * When one of the Classes is chosen, a dialog will pop up with the option to enroll or waitlist
      * a student based on their current enrollment status. Prior to all of this we check for conflicts
@@ -182,37 +208,6 @@ public class StudentEnrollFragment extends ListFragment {
         checkClassConflicts checkConflicts = new checkClassConflicts();
         checkConflicts.execute();
     }
-
-    //Asycn task to get the ChgDesc field to be used to populate the spinner
-    public class getSessionsAsync extends
-            AsyncTask<Globals.Data, Void, ArrayList<Session>> {
-        ProgressDialog progress;
-
-        protected void onPreExecute() {
-            progress = ProgressDialog.show(getActivity(), "Gathering Energy", "Loading...", true);
-        }
-
-        @Override
-        protected ArrayList<Session> doInBackground(Globals.Data... data) {
-
-            /**
-             * SoapObject session = oGlobals.getSoapRequest(Globals.Data.NAMESPACE, "getSessions");
-             * session = oGlobals.setSessionPropertyInfo(session, oStudent.SchID, "getSessions", oUser);
-             * return oGlobals.RetrieveSessionsFromSoap(session);
-             */
-
-            return oGlobals.getSessions(oSchool.SchID, oUser.UserID, oUser.UserGUID);
-
-        }
-
-        protected void onPostExecute(ArrayList<Session> result) {
-            progress.dismiss();
-            sessionArrayList = result;
-            addItemsOnSpinner(sessionArrayList);
-
-        }
-    }
-
 
     //Adds all items from the Session field to the spinner
     public void addItemsOnSpinner(ArrayList<Session> sess) {
@@ -248,63 +243,12 @@ public class StudentEnrollFragment extends ListFragment {
 
     }
 
-
-    /**
-     * Gets list of Classes, runs in onpost of session to ensure we have a session id
-     */
-    public class getStudentClassesAsync extends
-            AsyncTask<Globals.Data, Void, ArrayList<SchoolClasses>> {
-
-        @Override
-        protected ArrayList<SchoolClasses> doInBackground(Globals.Data... data) {
-
-
-            return oGlobals.getClasses(_appPrefs, SessionID, oStudent.StuID, oUser.StaffID);
-        }
-
-        protected void onPostExecute(ArrayList<SchoolClasses> result) {
-            schoolClassesArray = result;
-            _appPrefs.saveSchoolClassList(schoolClassesArray);
-
-            classAdapter = new SchoolClassAdapter(activity,
-                    R.layout.item_studentclass, schoolClassesArray);
-            updateListAdapter();
-
-
-        }
-    }
-
-
-    /**
-     * Checking if class that is to be enrolled conflicks with any other previously registered
-     * Classes
-     */
-    public class checkClassConflicts extends AsyncTask<Globals.Data, Void, ArrayList<String>> {
-        @Override
-        protected ArrayList<String> doInBackground(Globals.Data... data) {
-
-            return CheckConflicts();
-        }
-
-        protected void onPostExecute(ArrayList<String> result) {
-
-            conflictsArray = result;
-            dialogListener.onEnrollDialog(oSchoolClass, oStudent, conflictsArray, positionOfClass, classAdapter);
-
-        }
-    }
-
     public ArrayList<String> CheckConflicts() {
         String MethodName = "checkClassEnrollment";
         SoapObject response = InvokeEnrollmentMethod(Globals.Data.URL, MethodName);
         return RetrieveConflictsFromSoap(response);
 
     }
-
-    public static SoapObject GetSoapObject(String MethodName) {
-        return new SoapObject(Globals.Data.NAMESPACE, MethodName);
-    }
-
 
     public SoapObject InvokeEnrollmentMethod(String URL, String MethodName) {
 
@@ -343,7 +287,7 @@ public class StudentEnrollFragment extends ListFragment {
 
         PropertyInfo piMultiDay = new PropertyInfo();
         piMultiDay.setName("boolMultiDay");
-        piMultiDay.setValue(oSchoolClass.MultiDay);
+        piMultiDay.setValue(oSchoolClass.Multiday);
         request.addProperty(piMultiDay);
 
         PropertyInfo piMonday = new PropertyInfo();
@@ -408,46 +352,90 @@ public class StudentEnrollFragment extends ListFragment {
         return MakeConflictCall(URL, envelope, Globals.Data.NAMESPACE, MethodName);
     }
 
-    public static SoapObject MakeConflictCall(String URL,
-                                              SoapSerializationEnvelope envelope, String NAMESPACE,
-                                              String METHOD_NAME) {
-        HttpTransportSE HttpTransport = new HttpTransportSE(URL);
-        SoapObject response = null;
-        try {
-            //envelope.addMapping(Globals.Data.NAMESPACE, "SchoolClasses",new SchoolClasses().getClass());
-            HttpTransport.call(METHOD_NAME, envelope);
-            //envelopeOutput = envelope;
-            response = (SoapObject) envelope.getResponse();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return response;
-    }
-
-    public static ArrayList<String> RetrieveConflictsFromSoap(SoapObject soap) {
-
-        ArrayList<String> strConflictsArray = new ArrayList<String>();
-
-        for (int i = 0; i < soap.getPropertyCount(); i++) {
-
-            //SoapObject conflictItem = (SoapObject) soap.getProperty(i);
-            String response = soap.getPropertyAsString(i);
-            System.out.print(response);
-            if (response.equals("anyType{}") || response.equals("anyType"))
-                strConflictsArray.add(i, "");
-            else
-                strConflictsArray.add(i, soap.getProperty(i).toString());
-
-        }
-
-        return strConflictsArray;
-    }
-
-
     public void updateListAdapter() {
         setListAdapter(classAdapter);
 
         classAdapter.setNotifyOnChange(true);
+    }
+
+
+    public interface onEnrollDialog {
+
+        void onEnrollDialog(SchoolClasses objSchoolClass, Student oStudent,
+                            ArrayList<String> conflictsArray, int positionOfClass, SchoolClassAdapter classAdapter);
+    }
+
+    //Asycn task to get the ChgDesc field to be used to populate the spinner
+    public class getSessionsAsync extends
+            AsyncTask<Globals.Data, Void, ArrayList<Session>> {
+        ProgressDialog progress;
+
+        protected void onPreExecute() {
+            progress = ProgressDialog.show(getActivity(), "Gathering Energy", "Loading...", true);
+        }
+
+        @Override
+        protected ArrayList<Session> doInBackground(Globals.Data... data) {
+
+            /**
+             * SoapObject session = oGlobals.getSoapRequest(Globals.Data.NAMESPACE, "getSessions");
+             * session = oGlobals.setSessionPropertyInfo(session, oStudent.SchID, "getSessions", oUser);
+             * return oGlobals.RetrieveSessionsFromSoap(session);
+             */
+
+            return oGlobals.getSessions(oSchool.SchID, oUser.UserID, oUser.UserGUID);
+
+        }
+
+        protected void onPostExecute(ArrayList<Session> result) {
+            progress.dismiss();
+            sessionArrayList = result;
+            addItemsOnSpinner(sessionArrayList);
+
+        }
+    }
+
+    /**
+     * Gets list of Classes, runs in onpost of session to ensure we have a session id
+     */
+    public class getStudentClassesAsync extends
+            AsyncTask<Globals.Data, Void, ArrayList<SchoolClasses>> {
+
+        @Override
+        protected ArrayList<SchoolClasses> doInBackground(Globals.Data... data) {
+
+
+            return oGlobals.getClasses(_appPrefs, SessionID, oStudent.StuID, oUser.StaffID);
+        }
+
+        protected void onPostExecute(ArrayList<SchoolClasses> result) {
+            schoolClassesArray = result;
+            _appPrefs.saveSchoolClassList(schoolClassesArray);
+
+            classAdapter = new SchoolClassAdapter(activity,
+                    R.layout.item_studentclass, schoolClassesArray);
+            updateListAdapter();
+
+
+        }
+    }
+
+    /**
+     * Checking if class that is to be enrolled conflicks with any other previously registered
+     * Classes
+     */
+    public class checkClassConflicts extends AsyncTask<Globals.Data, Void, ArrayList<String>> {
+        @Override
+        protected ArrayList<String> doInBackground(Globals.Data... data) {
+
+            return CheckConflicts();
+        }
+
+        protected void onPostExecute(ArrayList<String> result) {
+
+            conflictsArray = result;
+            dialogListener.onEnrollDialog(oSchoolClass, oStudent, conflictsArray, positionOfClass, classAdapter);
+
+        }
     }
 }

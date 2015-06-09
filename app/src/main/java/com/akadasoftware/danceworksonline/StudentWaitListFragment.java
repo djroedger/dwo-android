@@ -21,6 +21,9 @@ import com.akadasoftware.danceworksonline.Classes.Session;
 import com.akadasoftware.danceworksonline.Classes.Student;
 import com.akadasoftware.danceworksonline.Classes.StudentWaitList;
 import com.akadasoftware.danceworksonline.Classes.User;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.PropertyInfo;
@@ -28,18 +31,17 @@ import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapSerializationEnvelope;
 import org.ksoap2.transport.HttpTransportSE;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 
 public class StudentWaitListFragment extends ListFragment {
 
-    private AppPreferences _appPrefs;
-
+    static SoapSerializationEnvelope envelope;
     String METHOD_NAME = "";
     String SOAP_ACTION = "";
     int position, SessionID;
-
-    static SoapSerializationEnvelope envelope;
     Activity activity;
     Student oStudent;
     User oUser;
@@ -48,12 +50,18 @@ public class StudentWaitListFragment extends ListFragment {
     ArrayList<Session> sessionArrayList = new ArrayList<Session>();
     SessionAdapter sessionAdapter;
     ArrayList<Student> Students = new ArrayList<Student>();
-
     Spinner sessionWaitListSpinner;
-
+    private AppPreferences _appPrefs;
     private OnWaitListListener mListener;
     private StudentWaitListAdapter waitListAdapter;
 
+
+    /**
+     * Mandatory empty constructor for the fragment manager to instantiate the
+     * fragment (e.g. upon screen orientation changes).
+     */
+    public StudentWaitListFragment() {
+    }
 
     // TODO: Rename and change types of parameters
     public static StudentWaitListFragment newInstance(int position) {
@@ -64,11 +72,45 @@ public class StudentWaitListFragment extends ListFragment {
         return fragment;
     }
 
-    /**
-     * Mandatory empty constructor for the fragment manager to instantiate the
-     * fragment (e.g. upon screen orientation changes).
-     */
-    public StudentWaitListFragment() {
+    public static SoapObject MakeCall(String URL, SoapSerializationEnvelope envelope, String NAMESPACE,
+                                      String METHOD_NAME, String SOAP_ACTION) {
+        HttpTransportSE HttpTransport = new HttpTransportSE(URL);
+        try {
+            envelope.addMapping(NAMESPACE, SOAP_ACTION,
+                    new StudentWaitList().getClass());
+
+            HttpTransport.call(METHOD_NAME, envelope);
+
+            SoapObject response = (SoapObject) envelope.getResponse();
+
+            return response;
+        } catch (Exception e) {
+            e.printStackTrace();
+
+        }
+        return null;
+    }
+
+    public static ArrayList<StudentWaitList> RetrieveWaitListFromSoap(SoapObject soap) {
+
+        ArrayList<StudentWaitList> studentWaitList = new ArrayList<StudentWaitList>();
+        for (int i = 0; i < soap.getPropertyCount(); i++) {
+
+            SoapObject classItem = (SoapObject) soap.getProperty(i);
+
+            StudentWaitList list = new StudentWaitList();
+            for (int j = 0; j < classItem.getPropertyCount(); j++) {
+                list.setProperty(j, classItem.getProperty(j)
+                        .toString());
+                if (classItem.getProperty(j).equals("anyType{}")) {
+                    classItem.setProperty(j, "");
+                }
+
+            }
+            studentWaitList.add(i, list);
+        }
+
+        return studentWaitList;
     }
 
     @Override
@@ -127,7 +169,6 @@ public class StudentWaitListFragment extends ListFragment {
         mListener = null;
     }
 
-
     /**
      * The default content for this Fragment has a TextView that is shown when
      * the list is empty. If you would like to change the text, call this method
@@ -141,47 +182,6 @@ public class StudentWaitListFragment extends ListFragment {
             ((TextView) emptyView).setText(emptyText);
         }
     }
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnWaitListListener {
-        // TODO: Update argument type and name
-        public void onWaitListInteraction(String id);
-    }
-
-    class Data {
-
-        private static final String NAMESPACE = "http://app.akadasoftware.com/MobileAppWebService/";
-        private static final String URL = "http://app.akadasoftware.com/MobileAppWebService/Android.asmx";
-    }
-
-    //Asycn task to get the ChgDesc field to be used to populate the spinner
-    public class getSessionsAsync extends
-            AsyncTask<Globals.Data, Void, ArrayList<Session>> {
-
-        @Override
-        protected ArrayList<Session> doInBackground(Globals.Data... data) {
-
-            return oGlobal.getSessions(oSchool.SchID, oUser.UserID, oUser.UserGUID);
-
-
-        }
-
-        protected void onPostExecute(ArrayList<Session> result) {
-            sessionArrayList = result;
-            addItemsOnSpinner(sessionArrayList);
-
-        }
-    }
-
 
     //Adds all items from the Session field to the spinner
     public void addItemsOnSpinner(ArrayList<Session> sess) {
@@ -216,27 +216,6 @@ public class StudentWaitListFragment extends ListFragment {
 
         getStudentWaitListAsync studentWaitList = new getStudentWaitListAsync();
         studentWaitList.execute();
-    }
-
-    public class getStudentWaitListAsync extends
-            AsyncTask<Data, Void, ArrayList<StudentWaitList>> {
-
-        @Override
-        protected ArrayList<StudentWaitList> doInBackground(Data... data) {
-
-            return getWaitList();
-        }
-
-
-        protected void onPostExecute(ArrayList<StudentWaitList> result) {
-
-            waitListAdapter = new StudentWaitListAdapter(activity,
-                    R.layout.item_studentwaitlist, result);
-            setListAdapter(waitListAdapter);
-            waitListAdapter.setNotifyOnChange(true);
-
-        }
-
     }
 
     public ArrayList<StudentWaitList> getWaitList() {
@@ -280,46 +259,86 @@ public class StudentWaitListFragment extends ListFragment {
         return MakeCall(URL, envelope, Data.NAMESPACE, METHOD_NAME, SOAP_ACTION);
     }
 
-    public static SoapObject MakeCall(String URL, SoapSerializationEnvelope envelope, String NAMESPACE,
-                                      String METHOD_NAME, String SOAP_ACTION) {
-        HttpTransportSE HttpTransport = new HttpTransportSE(URL);
-        try {
-            envelope.addMapping(NAMESPACE, SOAP_ACTION,
-                    new StudentWaitList().getClass());
-
-            HttpTransport.call(METHOD_NAME, envelope);
-
-            SoapObject response = (SoapObject) envelope.getResponse();
-
-            return response;
-        } catch (Exception e) {
-            e.printStackTrace();
-
-        }
-        return null;
+    /**
+     * This interface must be implemented by activities that contain this
+     * fragment to allow an interaction in this fragment to be communicated
+     * to the activity and potentially other fragments contained in that
+     * activity.
+     * <p/>
+     * See the Android Training lesson <a href=
+     * "http://developer.android.com/training/basics/fragments/communicating.html"
+     * >Communicating with Other Fragments</a> for more information.
+     */
+    public interface OnWaitListListener {
+        // TODO: Update argument type and name
+        void onWaitListInteraction(String id);
     }
 
+    class Data {
 
-    public static ArrayList<StudentWaitList> RetrieveWaitListFromSoap(SoapObject soap) {
+        private static final String NAMESPACE = "http://app.akadasoftware.com/MobileAppWebService/";
+        private static final String URL = "http://app.akadasoftware.com/MobileAppWebService/Android.asmx";
+    }
 
-        ArrayList<StudentWaitList> studentWaitList = new ArrayList<StudentWaitList>();
-        for (int i = 0; i < soap.getPropertyCount(); i++) {
+    //Asycn task to get the ChgDesc field to be used to populate the spinner
+    public class getSessionsAsync extends
+            AsyncTask<Globals.Data, Void, ArrayList<Session>> {
 
-            SoapObject classItem = (SoapObject) soap.getProperty(i);
+        @Override
+        protected ArrayList<Session> doInBackground(Globals.Data... data) {
 
-            StudentWaitList list = new StudentWaitList();
-            for (int j = 0; j < classItem.getPropertyCount(); j++) {
-                list.setProperty(j, classItem.getProperty(j)
-                        .toString());
-                if (classItem.getProperty(j).equals("anyType{}")) {
-                    classItem.setProperty(j, "");
-                }
+            return oGlobal.getSessions(oSchool.SchID, oUser.UserID, oUser.UserGUID);
 
-            }
-            studentWaitList.add(i, list);
+
         }
 
-        return studentWaitList;
+        protected void onPostExecute(ArrayList<Session> result) {
+            sessionArrayList = result;
+            addItemsOnSpinner(sessionArrayList);
+
+        }
+    }
+
+    public class getStudentWaitListAsync extends
+            AsyncTask<Data, Void, ArrayList<StudentWaitList>> {
+
+        @Override
+        protected ArrayList<StudentWaitList> doInBackground(Data... data) {
+
+            HashMap<String, Object> params = new HashMap<String, Object>();
+            params.put("StuID", String.valueOf(oStudent.StuID));
+            params.put("SessionID", String.valueOf(SessionID));
+            params.put("UserID", String.valueOf(oUser.UserID));
+            params.put("UserGUID", oUser.UserGUID);
+            String url = oGlobal.URLBuilder("getStuClasses?", params);
+            String response = oGlobal.callJSON(url);
+            ArrayList<StudentWaitList> studentWaitListArray = new ArrayList<StudentWaitList>();
+            try {
+
+                GsonBuilder gsonBuilder = new GsonBuilder();
+                gsonBuilder.setDateFormat("M/d/yy hh:mm a");
+                Gson gson = gsonBuilder.create();
+                //Sets what the the object will be deserialized too.
+                Type collectionType = new TypeToken<ArrayList<StudentWaitList>>() {
+                }.getType();
+                studentWaitListArray = gson.fromJson(response, collectionType);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+
+            return studentWaitListArray;
+        }
+
+
+        protected void onPostExecute(ArrayList<StudentWaitList> result) {
+
+            waitListAdapter = new StudentWaitListAdapter(activity,
+                    R.layout.item_studentwaitlist, result);
+            setListAdapter(waitListAdapter);
+            waitListAdapter.setNotifyOnChange(true);
+
+        }
+
     }
 
 

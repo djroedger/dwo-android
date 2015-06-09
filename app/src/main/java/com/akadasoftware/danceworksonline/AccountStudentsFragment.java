@@ -37,18 +37,17 @@ import java.util.HashMap;
 public class AccountStudentsFragment extends ListFragment implements AbsListView.OnItemClickListener {
 
 
+    static SoapSerializationEnvelope envelopeOutput;
+    static String SOAP_ACTION = "getStudents";
     ArrayList<Student> studentsArray = new ArrayList<Student>();
     ArrayList<Account> accountsArray;
-    private AppPreferences _appPrefs;
-    private OnStudentFragmentInteractionListener mListener;
-    private AccountStudentsAdapter stuAdapter;
-    static SoapSerializationEnvelope envelopeOutput;
     String METHOD_NAME = "";
-    static String SOAP_ACTION = "getStudents";
     Activity activity;
     Account oAccount;
     Globals oGlobals;
-
+    private AppPreferences _appPrefs;
+    private OnStudentFragmentInteractionListener mListener;
+    private AccountStudentsAdapter stuAdapter;
     /**
      * The fragment's ListView/GridView.
      */
@@ -60,6 +59,13 @@ public class AccountStudentsFragment extends ListFragment implements AbsListView
      */
     private ListAdapter mAdapter;
 
+    /**
+     * Mandatory empty constructor for the fragment manager to instantiate the
+     * fragment (e.g. upon screen orientation changes).
+     */
+    public AccountStudentsFragment() {
+    }
+
     // TODO: Rename and change types of parameters
     public static AccountStudentsFragment newInstance(int position) {
         AccountStudentsFragment fragment = new AccountStudentsFragment();
@@ -68,13 +74,6 @@ public class AccountStudentsFragment extends ListFragment implements AbsListView
         fragment.setArguments(args);
 
         return fragment;
-    }
-
-    /**
-     * Mandatory empty constructor for the fragment manager to instantiate the
-     * fragment (e.g. upon screen orientation changes).
-     */
-    public AccountStudentsFragment() {
     }
 
     @Override
@@ -139,6 +138,21 @@ public class AccountStudentsFragment extends ListFragment implements AbsListView
 
     }
 
+    /**
+     * This interface must be implemented by activities that contain this
+     * fragment to allow an interaction in this fragment to be communicated
+     * to the activity and potentially other fragments contained in that
+     * activity.
+     * <p/>
+     * See the Android Training lesson <a href=
+     * "http://developer.android.com/training/basics/fragments/communicating.html"
+     * >Communicating with Other Fragments</a> for more information.
+     */
+    public interface OnStudentFragmentInteractionListener {
+        // TODO: Update argument type and name
+        void onStudentFragmentInteraction(String id);
+    }
+
     class Data {
 
         private static final String NAMESPACE = "http://app.akadasoftware.com/MobileAppWebService/";
@@ -154,7 +168,7 @@ public class AccountStudentsFragment extends ListFragment implements AbsListView
 
 
         protected void onPreExecute() {
-            progress = ProgressDialog.show(getActivity(), "Getting stuff from da interwebs", "Loading...", true);
+            progress = ProgressDialog.show(getActivity(), "Getting list of students.", "Loading...", true);
         }
 
         @Override
@@ -198,21 +212,6 @@ public class AccountStudentsFragment extends ListFragment implements AbsListView
 
 
         }
-    }
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnStudentFragmentInteractionListener {
-        // TODO: Update argument type and name
-        public void onStudentFragmentInteraction(String id);
     }
 
 }

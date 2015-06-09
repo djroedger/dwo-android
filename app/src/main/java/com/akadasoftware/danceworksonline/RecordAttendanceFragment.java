@@ -17,6 +17,9 @@ import com.akadasoftware.danceworksonline.Classes.Globals;
 import com.akadasoftware.danceworksonline.Classes.Student;
 import com.akadasoftware.danceworksonline.Classes.StudentAttendance;
 import com.akadasoftware.danceworksonline.Classes.User;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import com.squareup.timessquare.CalendarPickerView;
 
 import org.ksoap2.SoapEnvelope;
@@ -25,11 +28,13 @@ import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapSerializationEnvelope;
 import org.ksoap2.transport.HttpTransportSE;
 
+import java.lang.reflect.Type;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 
 
 /**
@@ -46,31 +51,24 @@ public class RecordAttendanceFragment extends Fragment {
     Student oStudent;
     Globals oGlobal;
     Activity activity;
-    private AppPreferences _appPrefs;
-
     ArrayList<StudentAttendance> studentAttenanceArray = new ArrayList<StudentAttendance>();
-
     ArrayList<Student> students = new ArrayList<Student>();
-
     StudentAttendance oClassChoosen;
-
-
     int intMonth, intCurrentYear, position, SessionID;
-
     SeekBar seekBar;
-
     Button btnPreviousYear, btnNextYear;
-
     Calendar thisMonth, nextMonth;
-
     CalendarPickerView calendarPicker;
     ArrayList<Date> dates;
-
     SimpleDateFormat dateFormat;
-
+    private AppPreferences _appPrefs;
     private OnRecordAttendanceInteractionListener mListener;
     private OnAttendanceDialogInteractionListener aListener;
 
+
+    public RecordAttendanceFragment() {
+        // Required empty public constructor
+    }
 
     public static RecordAttendanceFragment newInstance(int position) {
         RecordAttendanceFragment fragment = new RecordAttendanceFragment();
@@ -80,8 +78,48 @@ public class RecordAttendanceFragment extends Fragment {
         return fragment;
     }
 
-    public RecordAttendanceFragment() {
-        // Required empty public constructor
+    public static SoapObject GetSoapObject(String MethodName) {
+        return new SoapObject(Globals.Data.NAMESPACE, MethodName);
+    }
+
+    public static SoapObject MakeAttendanceCall(String URL,
+                                                SoapSerializationEnvelope envelope, String NAMESPACE,
+                                                String METHOD_NAME) {
+        HttpTransportSE HttpTransport = new HttpTransportSE(URL);
+        SoapObject response = null;
+        try {
+            envelope.addMapping(NAMESPACE, "StudentAttendance",
+                    new StudentAttendance().getClass());
+            HttpTransport.call(METHOD_NAME, envelope);
+            response = (SoapObject) envelope.getResponse();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+        }
+        return response;
+    }
+
+    public static ArrayList<StudentAttendance> RetrieveCompleteAttendanceFromSoap(SoapObject soap) {
+
+        ArrayList<StudentAttendance> stuAttendance = new ArrayList<StudentAttendance>();
+        for (int i = 0; i < soap.getPropertyCount(); i++) {
+
+            SoapObject attendanceItem = (SoapObject) soap.getProperty(i);
+
+            StudentAttendance attendance = new StudentAttendance();
+            for (int j = 0; j < attendanceItem.getPropertyCount(); j++) {
+                attendance.setProperty(j, attendanceItem.getProperty(j)
+                        .toString());
+                if (attendanceItem.getProperty(j).equals("anyType{}")) {
+                    attendanceItem.setProperty(j, "");
+                }
+
+            }
+            stuAttendance.add(i, attendance);
+        }
+
+        return stuAttendance;
     }
 
     @Override
@@ -100,7 +138,6 @@ public class RecordAttendanceFragment extends Fragment {
                     + " must implement OnAttendanceDialogInteractionListener");
         }
     }
-
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -251,7 +288,6 @@ public class RecordAttendanceFragment extends Fragment {
         return rootView;
     }
 
-
     public void onResume() {
         super.onResume();
 
@@ -266,62 +302,48 @@ public class RecordAttendanceFragment extends Fragment {
         aListener = null;
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnRecordAttendanceInteractionListener {
-        // TODO: Update argument type and name
-        public void onRecordFragmentInteraction();
-    }
-
-
-    public interface OnAttendanceDialogInteractionListener {
-        public void onAttendanceDialogInteraction(StudentAttendance oStudentAttendance);
-
-    }
-
-
-    /**
-     * Get's the Student's attendance record
-     */
-    public class getCompleteStudentAttendanceAsync extends
-            AsyncTask<Globals.Data, Void, ArrayList<StudentAttendance>> {
-        ProgressDialog progress;
-
-        protected void onPreExecute() {
-            progress = ProgressDialog.show(activity, "Getting attendance", "Loading...", true);
-        }
-
-        @Override
-        protected ArrayList<StudentAttendance> doInBackground(Globals.Data... data) {
-
-            return getCompleteAttendance();
-        }
-
-        protected void onPostExecute(ArrayList<StudentAttendance> result) {
-            progress.dismiss();
-            studentAttenanceArray = result;
-
-            updateDateArray(studentAttenanceArray, dates);
-
-        }
-    }
-
-
     public ArrayList<StudentAttendance> getCompleteAttendance() {
+        /*
         String MethodName = "getCombinedStudentAttendance";
         SoapObject response = InvokeCompleteAttendanceMethod(Globals.Data.URL, MethodName);
         return RetrieveCompleteAttendanceFromSoap(response);
+        */
 
+        User oUser = _appPrefs.getUser();
+
+        int selectedMonth = thisMonth.get(Calendar.MONTH);
+        int selectedYear = thisMonth.get(Calendar.YEAR);
+
+        HashMap<String, Object> params = new HashMap<String, Object>();
+        params.put("SchID", String.valueOf(oStudent.SchID));
+        params.put("AcctID", String.valueOf(oStudent.AcctID));
+        params.put("StuID", String.valueOf(oStudent.StuID));
+        params.put("Year", String.valueOf(selectedYear));
+        params.put("Month", String.valueOf(selectedMonth + 1));
+        params.put("UserID", String.valueOf(oUser.UserID));
+        params.put("UserGUID", oUser.UserGUID);
+        String url = oGlobal.URLBuilder("getCombinedStudentAttendance?", params);
+        String response = oGlobal.callJSON(url);
+        ArrayList<StudentAttendance> studentAttendanceArray = new ArrayList<StudentAttendance>();
+        try {
+
+            GsonBuilder gsonBuilder = new GsonBuilder();
+            gsonBuilder.setDateFormat("M/d/yy hh:mm a");
+            Gson gson = gsonBuilder.create();
+            //Sets what the the object will be deserialized too.
+            Type collectionType = new TypeToken<ArrayList<StudentAttendance>>() {
+            }.getType();
+            studentAttendanceArray = gson.fromJson(response, collectionType);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return studentAttendanceArray;
     }
 
+    /**
+     * No longer used!
+     */
     public SoapObject InvokeCompleteAttendanceMethod(String URL, String MethodName) {
 
         SoapObject request = GetSoapObject(MethodName);
@@ -373,51 +395,6 @@ public class RecordAttendanceFragment extends Fragment {
         return MakeAttendanceCall(URL, envelope, Globals.Data.NAMESPACE, MethodName);
     }
 
-    public static SoapObject GetSoapObject(String MethodName) {
-        return new SoapObject(Globals.Data.NAMESPACE, MethodName);
-    }
-
-    public static SoapObject MakeAttendanceCall(String URL,
-                                                SoapSerializationEnvelope envelope, String NAMESPACE,
-                                                String METHOD_NAME) {
-        HttpTransportSE HttpTransport = new HttpTransportSE(URL);
-        SoapObject response = null;
-        try {
-            envelope.addMapping(NAMESPACE, "StudentAttendance",
-                    new StudentAttendance().getClass());
-            HttpTransport.call(METHOD_NAME, envelope);
-            response = (SoapObject) envelope.getResponse();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-
-        }
-        return response;
-    }
-
-    public static ArrayList<StudentAttendance> RetrieveCompleteAttendanceFromSoap(SoapObject soap) {
-
-        ArrayList<StudentAttendance> stuAttendance = new ArrayList<StudentAttendance>();
-        for (int i = 0; i < soap.getPropertyCount(); i++) {
-
-            SoapObject attendanceItem = (SoapObject) soap.getProperty(i);
-
-            StudentAttendance attendance = new StudentAttendance();
-            for (int j = 0; j < attendanceItem.getPropertyCount(); j++) {
-                attendance.setProperty(j, attendanceItem.getProperty(j)
-                        .toString());
-                if (attendanceItem.getProperty(j).equals("anyType{}")) {
-                    attendanceItem.setProperty(j, "");
-                }
-
-            }
-            stuAttendance.add(i, attendance);
-        }
-
-        return stuAttendance;
-    }
-
-
     public void drawCalendar(CalendarPickerView calendar, Calendar currentMonth, Calendar nextMonth) {
         calendar.init(currentMonth.getTime(), nextMonth.getTime()).inMode(CalendarPickerView.SelectionMode.MULTIPLE);
     }
@@ -427,7 +404,6 @@ public class RecordAttendanceFragment extends Fragment {
         calendar.init(currentMonth.getTime(), nextMonth.getTime()).inMode(CalendarPickerView.SelectionMode.MULTIPLE)
                 .withSelectedDates(datesSelected);
     }
-
 
     public void updateDateArray(ArrayList<StudentAttendance> attendanceArray,
                                 ArrayList<Date> datesAttended) {
@@ -439,16 +415,6 @@ public class RecordAttendanceFragment extends Fragment {
             try {
                 if (!datesAttended.contains(dateFormat.parse(attendanceArray.get(i).ADate)))
                     datesAttended.add(dateFormat.parse(attendanceArray.get(i).ADate));
-               /*
-                if (validateDate(attendanceArray.get(i).ADate)) {
-                    Toast toast = Toast.makeText(getActivity(), "Within range.", Toast.LENGTH_SHORT);
-                    toast.show();
-                    datesAttended.add(dateFormat.parse(attendanceArray.get(i).ADate));
-                } else {
-                    Toast toast = Toast.makeText(getActivity(), "Not within range.", Toast.LENGTH_SHORT);
-                    toast.show();
-
-                }*/
             } catch (ParseException e) {
                 e.printStackTrace();
             }
@@ -459,6 +425,53 @@ public class RecordAttendanceFragment extends Fragment {
             drawCalendar(calendarPicker, thisMonth, nextMonth, datesAttended);
         else
             drawCalendar(calendarPicker, thisMonth, nextMonth);
+    }
+
+
+    /**
+     * This interface must be implemented by activities that contain this
+     * fragment to allow an interaction in this fragment to be communicated
+     * to the activity and potentially other fragments contained in that
+     * activity.
+     * <p/>
+     * See the Android Training lesson <a href=
+     * "http://developer.android.com/training/basics/fragments/communicating.html"
+     * >Communicating with Other Fragments</a> for more information.
+     */
+    public interface OnRecordAttendanceInteractionListener {
+        // TODO: Update argument type and name
+        void onRecordFragmentInteraction();
+    }
+
+    public interface OnAttendanceDialogInteractionListener {
+        void onAttendanceDialogInteraction(StudentAttendance oStudentAttendance);
+
+    }
+
+    /**
+     * Get's the Student's attendance record
+     */
+    public class getCompleteStudentAttendanceAsync extends
+            AsyncTask<Globals.Data, Void, ArrayList<StudentAttendance>> {
+        ProgressDialog progress;
+
+        protected void onPreExecute() {
+            progress = ProgressDialog.show(activity, "Getting attendance", "Loading...", true);
+        }
+
+        @Override
+        protected ArrayList<StudentAttendance> doInBackground(Globals.Data... data) {
+
+            return getCompleteAttendance();
+        }
+
+        protected void onPostExecute(ArrayList<StudentAttendance> result) {
+            progress.dismiss();
+            studentAttenanceArray = result;
+
+            updateDateArray(studentAttenanceArray, dates);
+
+        }
     }
 
 

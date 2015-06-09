@@ -9,9 +9,9 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import com.akadasoftware.danceworksonline.R;
 import com.akadasoftware.danceworksonline.Classes.AppPreferences;
 import com.akadasoftware.danceworksonline.Classes.StudentWaitList;
+import com.akadasoftware.danceworksonline.R;
 
 import java.util.List;
 
@@ -20,27 +20,16 @@ import java.util.List;
  */
 public class StudentWaitListAdapter extends ArrayAdapter<StudentWaitList> {
 
-    private AppPreferences _appPrefs;
     Activity activity;
     int resource;
     //Context newContext;
     List<StudentWaitList> StudentWaitLists;
+    private AppPreferences _appPrefs;
 
     public StudentWaitListAdapter(Context context, int resource, List<StudentWaitList> items) {
         super(context, resource, items);
         this.resource = resource;
         StudentWaitLists = items;
-    }
-
-    public class ViewHolder {
-        TextView tvClassType;
-        TextView tvClassLevel;
-        TextView tvInstructor;
-        TextView tvDay;
-        TextView tvStart;
-        TextView tvStop;
-        TextView tvRoom;
-        TextView tvNotes;
     }
 
     /**
@@ -107,7 +96,7 @@ public class StudentWaitListAdapter extends ArrayAdapter<StudentWaitList> {
 
         String Day = "";
 
-        if (oStudentWaitList.MultiDay) {
+        if (oStudentWaitList.Multiday) {
             if (oStudentWaitList.Monday) {
                 Day = "Mon";
             }
@@ -163,6 +152,17 @@ public class StudentWaitListAdapter extends ArrayAdapter<StudentWaitList> {
         holder.tvNotes.setText(oStudentWaitList.Notes);
         return convertView;
 
+    }
+
+    public class ViewHolder {
+        TextView tvClassType;
+        TextView tvClassLevel;
+        TextView tvInstructor;
+        TextView tvDay;
+        TextView tvStart;
+        TextView tvStop;
+        TextView tvRoom;
+        TextView tvNotes;
     }
 }
 

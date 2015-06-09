@@ -22,14 +22,8 @@ import com.akadasoftware.danceworksonline.Classes.Globals;
 import com.akadasoftware.danceworksonline.Classes.Student;
 import com.akadasoftware.danceworksonline.Classes.User;
 
-import org.ksoap2.SoapEnvelope;
-import org.ksoap2.serialization.PropertyInfo;
-import org.ksoap2.serialization.SoapObject;
-import org.ksoap2.serialization.SoapPrimitive;
-import org.ksoap2.serialization.SoapSerializationEnvelope;
-import org.ksoap2.transport.HttpTransportSE;
-
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -38,29 +32,23 @@ import java.util.List;
 public class StudentInformationFragment extends Fragment {
 
 
-    private AppPreferences _appPrefs;
     Activity activity;
     User oUser;
     Student oStudent;
     Globals oGlobals;
     ArrayList<Student> Students;
-
     int position, intStatus;
-
     String strFName, strLName, strAddress, strCity, strState, strZip, strContact, strAcctName, strStatus;
-
-
     TextView tvName1, tvAddress1, tvContact1, tvStatus1, tvAccountName1;
-
     EditText etFName, etLName, etAddress, etCity, etState, etZip, etContact, etAccountName;
-
     Button btnEditStudent, btnEnrollStudent, btnSave, btnCancel;
-
     ViewFlipper studentSwitcher;
-
     Spinner StudentStatusSpinner;
-
     View rootView;
+    private AppPreferences _appPrefs;
+
+    public StudentInformationFragment() {
+    }
 
     public static StudentInformationFragment newInstance(int position) {
         StudentInformationFragment fragment = new StudentInformationFragment();
@@ -85,9 +73,6 @@ public class StudentInformationFragment extends Fragment {
         oUser = _appPrefs.getUser();
         _appPrefs.saveStuID(oStudent.StuID);
 
-    }
-
-    public StudentInformationFragment() {
     }
 
     //Create the view
@@ -266,18 +251,59 @@ public class StudentInformationFragment extends Fragment {
 
     }
 
+    /**
+     * Checks if all of the textviews are empty, if true runs async method to edit student information
+     *
+     * @return
+     */
+    private Boolean areEmpty() {
+        return etFName.getText().toString().trim().equals("") || etLName.getText().toString().trim().equals("") ||
+                etAddress.getText().toString().trim().equals("") || etCity.getText().toString().trim().equals("") ||
+                etState.getText().toString().trim().equals("") || etZip.getText().toString().trim().equals("") ||
+                etContact.getText().toString().trim().equals("");
+    }
+
     class Data {
 
         static final String NAMESPACE = "http://app.akadasoftware.com/MobileAppWebService/";
         private static final String URL = "http://app.akadasoftware.com/MobileAppWebService/Android.asmx";
     }
 
-
     public class saveStudentChangesAsync extends AsyncTask<Globals.Data, Void, String> {
         @Override
         protected String doInBackground(Globals.Data... data) {
 
-            return saveStudentChanges();
+            HashMap<String, Object> params = new HashMap<String, Object>();
+            params.put("StuID", String.valueOf(_appPrefs.getStuID()));
+            params.put("AcctID", String.valueOf(_appPrefs.getAcctID()));
+            params.put("UserID", String.valueOf(_appPrefs.getUserID()));
+            params.put("UserGUID", _appPrefs.getUserGUID());
+            params.put("FName", strFName);
+            params.put("LName", strLName);
+            params.put("Address", strAddress);
+            params.put("City", strCity);
+            params.put("State", strState);
+            params.put("ZipCode", strZip);
+            params.put("Phone", strContact);
+            params.put("AcctName", strAcctName);
+            params.put("Status", String.valueOf(intStatus));
+
+            String url = oGlobals.URLBuilder("saveStudentInformation?", params);
+            String response = oGlobals.callJSON(url);
+            /*try {
+
+                GsonBuilder gsonBuilder = new GsonBuilder();
+                gsonBuilder.setDateFormat("M/d/yy hh:mm a");
+                Gson gson = gsonBuilder.create();
+                //Sets what the the object will be deserialized too.
+                Type collectionType = new TypeToken<ArrayList<String>>() {
+                }.getType();
+                transactionsArray = gson.fromJson(response, collectionType);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }*/
+            return response;
+
         }
 
         protected void onPostExecute(String result) {
@@ -301,127 +327,5 @@ public class StudentInformationFragment extends Fragment {
                 setStudentFields(oStudent, rootView);
             }
         }
-    }
-
-    public String saveStudentChanges() {
-        String MethodName = "saveStudentInformation";
-        SoapPrimitive response = InvokeSaveStudenttMethod(Globals.Data.URL, MethodName);
-        return RetrieveSaveStudentFromSoap(response);
-
-    }
-
-
-    public SoapPrimitive InvokeSaveStudenttMethod(String URL, String METHOD_NAME) {
-
-        SoapObject request = new SoapObject(Globals.Data.NAMESPACE, METHOD_NAME);
-
-        PropertyInfo piUserID = new PropertyInfo();
-        piUserID.setName("UserID");
-        piUserID.setValue(oUser.UserID);
-        request.addProperty(piUserID);
-
-        PropertyInfo piUserGUID = new PropertyInfo();
-        piUserGUID.setType("STRING_CLASS");
-        piUserGUID.setName("UserGUID");
-        piUserGUID.setValue(oUser.UserGUID);
-        request.addProperty(piUserGUID);
-
-        PropertyInfo piStuID = new PropertyInfo();
-        piStuID.setName("StuID");
-        piStuID.setValue(oStudent.StuID);
-        request.addProperty(piStuID);
-
-        PropertyInfo piFName = new PropertyInfo();
-        piFName.setName("FName");
-        piFName.setValue(strFName);
-        request.addProperty(piFName);
-
-        PropertyInfo piLName = new PropertyInfo();
-        piLName.setName("LName");
-        piLName.setValue(strLName);
-        request.addProperty(piLName);
-
-        PropertyInfo piAddress = new PropertyInfo();
-        piAddress.setName("Address");
-        piAddress.setValue(strAddress);
-        request.addProperty(piAddress);
-
-        PropertyInfo piCity = new PropertyInfo();
-        piCity.setName("City");
-        piCity.setValue(strCity);
-        request.addProperty(piCity);
-
-        PropertyInfo piState = new PropertyInfo();
-        piState.setName("State");
-        piState.setValue(strState);
-        request.addProperty(piState);
-
-        PropertyInfo piZipCode = new PropertyInfo();
-        piZipCode.setName("ZipCode");
-        piZipCode.setValue(strZip);
-        request.addProperty(piZipCode);
-
-        PropertyInfo piPhone = new PropertyInfo();
-        piPhone.setName("Phone");
-        piPhone.setValue(strContact);
-        request.addProperty(piPhone);
-
-        PropertyInfo piAcctName = new PropertyInfo();
-        piAcctName.setName("AcctName");
-        piAcctName.setValue(strAcctName);
-        request.addProperty(piAcctName);
-
-        PropertyInfo piStatus = new PropertyInfo();
-        piStatus.setName("Status");
-        piStatus.setValue(intStatus);
-        request.addProperty(piStatus);
-
-
-        SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(
-                SoapEnvelope.VER11);
-        envelope.dotNet = true;
-        envelope.setOutputSoapObject(request);
-        return MakeSaveCall(URL, envelope, Globals.Data.NAMESPACE, METHOD_NAME);
-    }
-
-    public static SoapPrimitive MakeSaveCall(String URL,
-                                             SoapSerializationEnvelope envelope, String NAMESPACE,
-                                             String METHOD_NAME) {
-        HttpTransportSE HttpTransport = new HttpTransportSE(URL);
-        SoapPrimitive response = null;
-        try {
-            //envelope.addMapping(Globals.Data.NAMESPACE, "SchoolClasses",new SchoolClasses().getClass());
-            HttpTransport.call(METHOD_NAME, envelope);
-            //envelopeOutput = envelope;
-            response = (SoapPrimitive) envelope.getResponse();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return response;
-    }
-
-    public static String RetrieveSaveStudentFromSoap(SoapPrimitive soap) {
-        String response = soap.toString();
-
-        return response;
-
-    }
-
-
-    /**
-     * Checks if all of the textviews are empty, if true runs async method to edit student information
-     *
-     * @return
-     */
-    private Boolean areEmpty() {
-        if (etFName.getText().toString().trim().equals("") || etLName.getText().toString().trim().equals("") ||
-                etAddress.getText().toString().trim().equals("") || etCity.getText().toString().trim().equals("") ||
-                etState.getText().toString().trim().equals("") || etZip.getText().toString().trim().equals("") ||
-                etContact.getText().toString().trim().equals("")) {
-
-            return true;
-        } else
-            return false;
     }
 }

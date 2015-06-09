@@ -9,9 +9,9 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import com.akadasoftware.danceworksonline.R;
 import com.akadasoftware.danceworksonline.Classes.AppPreferences;
 import com.akadasoftware.danceworksonline.Classes.StudentClasses;
+import com.akadasoftware.danceworksonline.R;
 
 import java.util.List;
 
@@ -20,11 +20,11 @@ import java.util.List;
  */
 public class StudentClassAdapter extends ArrayAdapter<StudentClasses> {
 
-    private AppPreferences _appPrefs;
     Activity activity;
     int resource;
     //Context newContext;
     List<StudentClasses> Classes;
+    private AppPreferences _appPrefs;
 
     public StudentClassAdapter(Context context, int resource, List<StudentClasses> items) {
         super(context, resource, items);
@@ -32,17 +32,6 @@ public class StudentClassAdapter extends ArrayAdapter<StudentClasses> {
         this.resource = resource;
         Classes = items;
 
-    }
-
-    public class ViewHolder {
-        TextView tvClassType;
-        TextView tvClassLevel;
-        TextView tvDescription;
-        TextView tvInstructor;
-        TextView tvDay;
-        TextView tvStart;
-        TextView tvStop;
-        TextView tvRoom;
     }
 
     /**
@@ -105,7 +94,7 @@ public class StudentClassAdapter extends ArrayAdapter<StudentClasses> {
         holder.tvDescription.setText(oStudentClasses.ClDescription);
         holder.tvInstructor.setText(oStudentClasses.ClInstructor);
 
-        if (oStudentClasses.MultiDay) {
+        if (oStudentClasses.Multiday) {
             if (oStudentClasses.Monday) {
                 Day = "Mon";
             }
@@ -161,5 +150,16 @@ public class StudentClassAdapter extends ArrayAdapter<StudentClasses> {
 
         return convertView;
 
+    }
+
+    public class ViewHolder {
+        TextView tvClassType;
+        TextView tvClassLevel;
+        TextView tvDescription;
+        TextView tvInstructor;
+        TextView tvDay;
+        TextView tvStart;
+        TextView tvStop;
+        TextView tvRoom;
     }
 }

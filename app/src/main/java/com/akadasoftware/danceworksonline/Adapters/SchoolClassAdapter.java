@@ -22,11 +22,11 @@ import java.util.List;
  */
 public class SchoolClassAdapter extends ArrayAdapter<SchoolClasses> {
 
-    private AppPreferences _appPrefs;
     Activity activity;
     int resource;
     //Context newContext;
     List<SchoolClasses> Classes;
+    private AppPreferences _appPrefs;
 
     public SchoolClassAdapter(Context context, int resource, ArrayList<SchoolClasses> items) {
         super(context, resource, items);
@@ -34,18 +34,6 @@ public class SchoolClassAdapter extends ArrayAdapter<SchoolClasses> {
         this.resource = resource;
         Classes = items;
 
-    }
-
-    public class ViewHolder {
-        TextView tvClassType;
-        TextView tvEnrollmentStatus;
-        TextView tvClassLevel;
-        TextView tvDescription;
-        TextView tvInstructor;
-        TextView tvDay;
-        TextView tvStart;
-        TextView tvStop;
-        TextView tvRoom;
     }
 
     /**
@@ -111,7 +99,7 @@ public class SchoolClassAdapter extends ArrayAdapter<SchoolClasses> {
         holder.tvDescription.setText(oSchoolClasses.ClDescription);
         holder.tvInstructor.setText(oSchoolClasses.ClInstructor);
 
-        if (oSchoolClasses.MultiDay) {
+        if (oSchoolClasses.Multiday) {
             if (oSchoolClasses.Monday) {
                 Day = "Mon";
             }
@@ -205,5 +193,17 @@ public class SchoolClassAdapter extends ArrayAdapter<SchoolClasses> {
     public void replaceSchoolClass(SchoolClasses objSchoolClasses, int intClassPosition) {
         Classes.set(intClassPosition, objSchoolClasses);
         notifyDataSetChanged();
+    }
+
+    public class ViewHolder {
+        TextView tvClassType;
+        TextView tvEnrollmentStatus;
+        TextView tvClassLevel;
+        TextView tvDescription;
+        TextView tvInstructor;
+        TextView tvDay;
+        TextView tvStart;
+        TextView tvStop;
+        TextView tvRoom;
     }
 }
