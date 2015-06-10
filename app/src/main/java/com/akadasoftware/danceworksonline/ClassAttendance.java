@@ -48,14 +48,11 @@ public class ClassAttendance extends Fragment {
     int position, intMonth, intCurrentYear;
 
     SimpleDateFormat dateFormat;
-
-    private AppPreferences _appPrefs;
-
     Calendar thisMonth, nextMonth;
-
     SeekBar classSeekBar;
     CalendarPickerView classCalendarPicker;
     Button btnPreviousYear, btnNextYear;
+    private AppPreferences _appPrefs;
 
     public static ClassAttendance newInstance(int position) {
         ClassAttendance fragment = new ClassAttendance();
@@ -63,6 +60,50 @@ public class ClassAttendance extends Fragment {
         args.putInt("Position", position);
         fragment.setArguments(args);
         return fragment;
+    }
+
+    public static SoapObject GetSoapObject(String MethodName) {
+        return new SoapObject(Globals.Data.NAMESPACE, MethodName);
+    }
+
+    public static SoapObject MakeAttendanceCall(String URL,
+                                                SoapSerializationEnvelope envelope, String NAMESPACE,
+                                                String METHOD_NAME) {
+        HttpTransportSE HttpTransport = new HttpTransportSE(URL);
+        SoapObject response = null;
+        try {
+            envelope.addMapping(NAMESPACE, "StudentAttendance",
+                    new StudentAttendance().getClass());
+            HttpTransport.call(METHOD_NAME, envelope);
+            response = (SoapObject) envelope.getResponse();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+        }
+        return response;
+    }
+
+    public static ArrayList<StudentAttendance> RetrieveCompleteAttendanceFromSoap(SoapObject soap) {
+
+        ArrayList<StudentAttendance> stuAttendance = new ArrayList<StudentAttendance>();
+        for (int i = 0; i < soap.getPropertyCount(); i++) {
+
+            SoapObject attendanceItem = (SoapObject) soap.getProperty(i);
+
+            StudentAttendance attendance = new StudentAttendance();
+            for (int j = 0; j < attendanceItem.getPropertyCount(); j++) {
+                attendance.setProperty(j, attendanceItem.getProperty(j)
+                        .toString());
+                if (attendanceItem.getProperty(j).equals("anyType{}")) {
+                    attendanceItem.setProperty(j, "");
+                }
+
+            }
+            stuAttendance.add(i, attendance);
+        }
+
+        return stuAttendance;
     }
 
     public void onCreate(Bundle savedInstanceState) {
@@ -209,33 +250,6 @@ public class ClassAttendance extends Fragment {
         super.onDetach();
     }
 
-    /**
-     * Get's the Student's attendance record
-     */
-    public class getCompleteClassAttendanceAsync extends
-            AsyncTask<Globals.Data, Void, ArrayList<StudentAttendance>> {
-        ProgressDialog progress;
-
-        protected void onPreExecute() {
-            progress = ProgressDialog.show(activity, "Getting attendance", "Loading...", true);
-        }
-
-        @Override
-        protected ArrayList<StudentAttendance> doInBackground(Globals.Data... data) {
-
-            return getCompleteClassAttendance();
-        }
-
-        protected void onPostExecute(ArrayList<StudentAttendance> result) {
-            progress.dismiss();
-            classAttendanceArray = result;
-
-            updateDateArray(classAttendanceArray, dates);
-
-        }
-    }
-
-
     public ArrayList<StudentAttendance> getCompleteClassAttendance() {
         String MethodName = "getCombinedClassAttendance";
         SoapObject response = InvokeCompleteAttendanceMethod(Globals.Data.URL, MethodName);
@@ -291,50 +305,6 @@ public class ClassAttendance extends Fragment {
         return MakeAttendanceCall(URL, envelope, Globals.Data.NAMESPACE, MethodName);
     }
 
-    public static SoapObject GetSoapObject(String MethodName) {
-        return new SoapObject(Globals.Data.NAMESPACE, MethodName);
-    }
-
-    public static SoapObject MakeAttendanceCall(String URL,
-                                                SoapSerializationEnvelope envelope, String NAMESPACE,
-                                                String METHOD_NAME) {
-        HttpTransportSE HttpTransport = new HttpTransportSE(URL);
-        SoapObject response = null;
-        try {
-            envelope.addMapping(NAMESPACE, "StudentAttendance",
-                    new StudentAttendance().getClass());
-            HttpTransport.call(METHOD_NAME, envelope);
-            response = (SoapObject) envelope.getResponse();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-
-        }
-        return response;
-    }
-
-    public static ArrayList<StudentAttendance> RetrieveCompleteAttendanceFromSoap(SoapObject soap) {
-
-        ArrayList<StudentAttendance> stuAttendance = new ArrayList<StudentAttendance>();
-        for (int i = 0; i < soap.getPropertyCount(); i++) {
-
-            SoapObject attendanceItem = (SoapObject) soap.getProperty(i);
-
-            StudentAttendance attendance = new StudentAttendance();
-            for (int j = 0; j < attendanceItem.getPropertyCount(); j++) {
-                attendance.setProperty(j, attendanceItem.getProperty(j)
-                        .toString());
-                if (attendanceItem.getProperty(j).equals("anyType{}")) {
-                    attendanceItem.setProperty(j, "");
-                }
-
-            }
-            stuAttendance.add(i, attendance);
-        }
-
-        return stuAttendance;
-    }
-
     public void drawCalendar(CalendarPickerView calendar, Calendar currentMonth, Calendar nextMonth) {
         calendar.init(currentMonth.getTime(), nextMonth.getTime()).inMode(CalendarPickerView.SelectionMode.MULTIPLE);
     }
@@ -366,6 +336,32 @@ public class ClassAttendance extends Fragment {
             drawCalendar(classCalendarPicker, thisMonth, nextMonth, datesAttended);
         else
             drawCalendar(classCalendarPicker, thisMonth, nextMonth);
+    }
+
+    /**
+     * Get's the Student's attendance record
+     */
+    public class getCompleteClassAttendanceAsync extends
+            AsyncTask<Globals.Data, Void, ArrayList<StudentAttendance>> {
+        ProgressDialog progress;
+
+        protected void onPreExecute() {
+            progress = ProgressDialog.show(activity, "Getting attendance", "Loading...", true);
+        }
+
+        @Override
+        protected ArrayList<StudentAttendance> doInBackground(Globals.Data... data) {
+
+            return getCompleteClassAttendance();
+        }
+
+        protected void onPostExecute(ArrayList<StudentAttendance> result) {
+            progress.dismiss();
+            classAttendanceArray = result;
+
+            updateDateArray(classAttendanceArray, dates);
+
+        }
     }
 
 }

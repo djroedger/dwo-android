@@ -109,8 +109,6 @@ public class StudentEnrollFragment extends ListFragment {
         ArrayList<String> strConflictsArray = new ArrayList<String>();
 
         for (int i = 0; i < soap.getPropertyCount(); i++) {
-
-            //SoapObject conflictItem = (SoapObject) soap.getProperty(i);
             String response = soap.getPropertyAsString(i);
             System.out.print(response);
             if (response.equals("anyType{}") || response.equals("anyType"))
@@ -371,20 +369,12 @@ public class StudentEnrollFragment extends ListFragment {
         ProgressDialog progress;
 
         protected void onPreExecute() {
-            progress = ProgressDialog.show(getActivity(), "Gathering Energy", "Loading...", true);
+            progress = ProgressDialog.show(getActivity(), "Fetching Classes...", "Loading...", true);
         }
 
         @Override
         protected ArrayList<Session> doInBackground(Globals.Data... data) {
-
-            /**
-             * SoapObject session = oGlobals.getSoapRequest(Globals.Data.NAMESPACE, "getSessions");
-             * session = oGlobals.setSessionPropertyInfo(session, oStudent.SchID, "getSessions", oUser);
-             * return oGlobals.RetrieveSessionsFromSoap(session);
-             */
-
             return oGlobals.getSessions(oSchool.SchID, oUser.UserID, oUser.UserGUID);
-
         }
 
         protected void onPostExecute(ArrayList<Session> result) {
@@ -396,7 +386,7 @@ public class StudentEnrollFragment extends ListFragment {
     }
 
     /**
-     * Gets list of Classes, runs in onpost of session to ensure we have a session id
+     * Gets list of Classes, runs in on post of session to ensure we have a session id
      */
     public class getStudentClassesAsync extends
             AsyncTask<Globals.Data, Void, ArrayList<SchoolClasses>> {
@@ -405,7 +395,7 @@ public class StudentEnrollFragment extends ListFragment {
         protected ArrayList<SchoolClasses> doInBackground(Globals.Data... data) {
 
 
-            return oGlobals.getClasses(_appPrefs, SessionID, oStudent.StuID, oUser.StaffID);
+            return oGlobals.getClasses(_appPrefs, SessionID, oStudent.StuID, 0);
         }
 
         protected void onPostExecute(ArrayList<SchoolClasses> result) {
@@ -421,7 +411,7 @@ public class StudentEnrollFragment extends ListFragment {
     }
 
     /**
-     * Checking if class that is to be enrolled conflicks with any other previously registered
+     * Checking if class that is to be enrolled conflicts with any other previously registered
      * Classes
      */
     public class checkClassConflicts extends AsyncTask<Globals.Data, Void, ArrayList<String>> {

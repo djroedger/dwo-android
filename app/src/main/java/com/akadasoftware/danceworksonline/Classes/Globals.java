@@ -212,178 +212,6 @@ public class Globals {
         return inputSchool;
     }
 
-    /**
-     * Get accounts list
-     */
-    public static ArrayList<Account> getAccounts(AppPreferences _appPrefsNew) {
-        _appPrefs = _appPrefsNew;
-        String MethodName = "getAccounts";
-        SoapObject response = InvokeAccountMethod(Data.URL, MethodName);
-        return RetrieveAccountsFromSoap(response);
-
-    }
-
-    public static SoapObject InvokeAccountMethod(String URL, String MethodName) {
-
-        SoapObject requestAccounts = GetAccountSoapObject(MethodName);
-
-        User oUser = _appPrefs.getUser();
-        String strAccontQuery = _appPrefs.getAccountQuery();
-
-        PropertyInfo piOrder = new PropertyInfo();
-        piOrder.setType("STRING_CLASS");
-        piOrder.setName("Order");
-        piOrder.setValue(strAccontQuery);
-        requestAccounts.addProperty(piOrder);
-
-        PropertyInfo piSchID = new PropertyInfo();
-        piSchID.setName("SchID");
-        piSchID.setValue(oUser.SchID);
-        requestAccounts.addProperty(piSchID);
-
-        PropertyInfo piUserID = new PropertyInfo();
-        piUserID.setName("UserID");
-        piUserID.setValue(oUser.UserID);
-        requestAccounts.addProperty(piUserID);
-
-        PropertyInfo piUserGUID = new PropertyInfo();
-        piUserGUID.setType("STRING_CLASS");
-        piUserGUID.setName("UserGUID");
-        piUserGUID.setValue(oUser.UserGUID);
-        requestAccounts.addProperty(piUserGUID);
-
-        SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(
-                SoapEnvelope.VER11);
-        envelope.dotNet = true;
-        envelope.setOutputSoapObject(requestAccounts);
-        return MakeAccountCall(URL, envelope, Data.NAMESPACE, MethodName);
-    }
-
-/*
-    public static SoapObject InvokeSessionMethod(String URL, String METHOD_NAME, int intSchID, int intUserID, String UserGUID) {
-
-        SoapObject requestSession = new SoapObject(Data.NAMESPACE, METHOD_NAME);
-
-        PropertyInfo piUserID = new PropertyInfo();
-        piUserID.setName("UserID");
-        piUserID.setValue(intUserID);
-        requestSession.addProperty(piUserID);
-
-        PropertyInfo piUserGUID = new PropertyInfo();
-        piUserGUID.setType("STRING_CLASS");
-        piUserGUID.setName("UserGUID");
-        piUserGUID.setValue(UserGUID);
-        requestSession.addProperty(piUserGUID);
-
-        PropertyInfo Order = new PropertyInfo();
-        Order.setName("Order");
-        Order.setValue(" WHERE SchID= " + intSchID + "AND DisplaySession='True' ORDER BY SDate,EDate,SessionName");
-        requestSession.addProperty(Order);
-
-        SoapSerializationEnvelope envelopeSessions = new SoapSerializationEnvelope(
-                SoapEnvelope.VER11);
-
-        envelopeSessions.dotNet = true;
-        envelopeSessions.setOutputSoapObject(requestSession);
-
-        envelopeSessions.dotNet = true;
-        return MakeSessionCall(URL, envelopeSessions, Data.NAMESPACE, METHOD_NAME);
-    }
-
-    public static SoapObject MakeSessionCall(String URL,
-                                             SoapSerializationEnvelope envelope, String NAMESPACE,
-                                             String METHOD_NAME) {
-        HttpTransportSE HttpTransport = new HttpTransportSE(URL);
-        SoapObject responseSession = null;
-        try {
-            envelope.addMapping(Data.NAMESPACE, "Session",
-                    new Session().getClass());
-            HttpTransport.call(METHOD_NAME, envelope);
-            responseSession = (SoapObject) envelope.getResponse();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return responseSession;
-    }
-
-
-    public static ArrayList<Session> RetrieveSessionsFromSoap(SoapObject soap) {
-
-        ArrayList<Session> sessionArray = new ArrayList<Session>();
-
-        for (int i = 0; i < soap.getPropertyCount(); i++) {
-
-            SoapObject sessionItem = (SoapObject) soap.getProperty(i);
-
-            Session Session = new Session();
-            for (int j = 0; j < sessionItem.getPropertyCount(); j++) {
-                Session.setProperty(j, sessionItem.getProperty(j)
-                        .toString());
-                if (sessionItem.getProperty(j).equals("anyType{}")) {
-                    sessionItem.setProperty(j, "");
-                }
-
-            }
-            sessionArray.add(i, Session);
-        }
-
-        return sessionArray;
-    }
-*/
-
-    public static SoapObject GetAccountSoapObject(String MethodName) {
-        return new SoapObject(Data.NAMESPACE, MethodName);
-    }
-
-    public static SoapObject MakeAccountCall(String URL,
-                                             SoapSerializationEnvelope envelope, String NAMESPACE,
-                                             String METHOD_NAME) {
-        HttpTransportSE HttpTransport = new HttpTransportSE(URL);
-        SoapObject responseAccounts = null;
-        try {
-            envelope.addMapping(Data.NAMESPACE, "Account",
-                    new Account().getClass());
-            HttpTransport.call(METHOD_NAME, envelope);
-            responseAccounts = (SoapObject) envelope.getResponse();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return responseAccounts;
-    }
-
-    public static ArrayList<Account> RetrieveAccountsFromSoap(SoapObject soap) {
-
-        ArrayList<Account> Accounts = new ArrayList<Account>();
-        for (int i = 0; i < soap.getPropertyCount(); i++) {
-
-            SoapObject accountlistitem = (SoapObject) soap.getProperty(i);
-            Account account = new Account();
-            for (int j = 0; j < accountlistitem.getPropertyCount(); j++) {
-                account.setProperty(j, accountlistitem.getProperty(j)
-                        .toString());
-                if (accountlistitem.getProperty(j).equals("anyType{}")) {
-                    accountlistitem.setProperty(j, "");
-                }
-
-            }
-            Accounts.add(i, account);
-        }
-
-        return Accounts;
-    }
-
-    /**
-     * Get students list
-     */
-
-    public static ArrayList<Student> getStudents(AppPreferences _appPrefsNew, int intAcctID) {
-        _appPrefs = _appPrefsNew;
-        String MethodName = "getStudents";
-        SoapObject response = InvokeMethod(Data.URL, MethodName, intAcctID);
-        return RetrieveStudentsFromSoap(response);
-    }
-
     public static SoapObject InvokeMethod(String URL, String MethodName, int intAcctID) {
 
         SoapObject request = GetSoapObject(MethodName);
@@ -391,6 +219,7 @@ public class Globals {
         Globals oGlobals = new Globals();
         User oUser = _appPrefs.getUser();
         String strStudentQuery = "";
+
         /**
          * Loads students for one particular account
          */
@@ -595,10 +424,115 @@ public class Globals {
         return responseWaitList;
     }
 
-    public static Integer RetrieveWaitListFromSoap(SoapPrimitive soap) {
-        int response = Integer.parseInt(soap.toString());
+    /**
+     * Get accounts list
+     */
+    public ArrayList<Account> getAccounts(AppPreferences _appPrefsNew) {
+        _appPrefs = _appPrefsNew;
 
-        return response;
+        User oUser = _appPrefs.getUser();
+        String strAccontQuery = _appPrefs.getAccountQuery();
+
+        HashMap<String, Object> params = new HashMap<String, Object>();
+        params.put("Order", strAccontQuery);
+        params.put("SchID", String.valueOf(oUser.SchID));
+        params.put("UserID", String.valueOf(oUser.UserID));
+        params.put("UserGUID", oUser.UserGUID);
+        String url = this.URLBuilder("getAccounts?", params);
+        String response = this.callJSON(url);
+        ArrayList<Account> accountsArray = new ArrayList<Account>();
+        try {
+
+            GsonBuilder gsonBuilder = new GsonBuilder();
+            gsonBuilder.setDateFormat("M/d/yy hh:mm a");
+            Gson gson = gsonBuilder.create();
+            //Sets what the the object will be deserialized too.
+            Type collectionType = new TypeToken<ArrayList<Account>>() {
+            }.getType();
+            accountsArray = gson.fromJson(response, collectionType);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return accountsArray;
+    }
+
+    /**
+     * Get students list
+     */
+    public ArrayList<Student> getStudents(AppPreferences _appPrefsNew, int intAcctID) {
+        Globals oGlobals = new Globals();
+        User oUser = _appPrefs.getUser();
+        String strStudentQuery = "";
+
+        /**
+         * Loads students for one particular account
+         */
+        if (intAcctID > 0) {
+            strStudentQuery = oGlobals.BuildQuery(4, _appPrefs.getStudentSortBy(), "Students");
+        }
+        /**
+         * Loads all students
+         */
+        else {
+            strStudentQuery = _appPrefs.getStudentQuery();
+        }
+        HashMap<String, Object> params = new HashMap<String, Object>();
+        params.put("Where", strStudentQuery);
+        params.put("SchID", String.valueOf(oUser.SchID));
+        params.put("AcctID", String.valueOf(intAcctID));
+        params.put("UserID", String.valueOf(oUser.UserID));
+        params.put("UserGUID", oUser.UserGUID);
+        String url = this.URLBuilder("getStudents?", params);
+        String response = this.callJSON(url);
+        ArrayList<Student> studentsArray = new ArrayList<Student>();
+        try {
+
+            GsonBuilder gsonBuilder = new GsonBuilder();
+            gsonBuilder.setDateFormat("M/d/yy hh:mm a");
+            Gson gson = gsonBuilder.create();
+            //Sets what the the object will be deserialized too.
+            Type collectionType = new TypeToken<ArrayList<Student>>() {
+            }.getType();
+            studentsArray = gson.fromJson(response, collectionType);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return studentsArray;
+    }
+
+    /**
+     * Get class list
+     */
+    public ArrayList<SchoolClasses> getClasses(AppPreferences _appPrefsNew, int intSessionID, int intStuID, int intStaffID) {
+
+        _appPrefs = _appPrefsNew;
+        HashMap<String, Object> params = new HashMap<String, Object>();
+        params.put("SessionID", String.valueOf(intSessionID));
+        params.put("StuID", String.valueOf(intStuID));
+        params.put("intBoolEnroll", String.valueOf(1));
+        params.put("StaffID", String.valueOf(intStaffID));
+        params.put("UserID", String.valueOf(_appPrefsNew.getUserID()));
+        params.put("UserGUID", _appPrefsNew.getUserGUID());
+        String url = this.URLBuilder("getSchoolClasses?", params);
+        String response = this.callJSON(url);
+        ArrayList<SchoolClasses> classArray = new ArrayList<SchoolClasses>();
+        try {
+
+            GsonBuilder gsonBuilder = new GsonBuilder();
+            gsonBuilder.setDateFormat("M/d/yy hh:mm a");
+            Gson gson = gsonBuilder.create();
+            //Sets what the the object will be deserialized too.
+            Type collectionType = new TypeToken<ArrayList<SchoolClasses>>() {
+            }.getType();
+            classArray = gson.fromJson(response, collectionType);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return classArray;
+
     }
 
     /**
@@ -952,87 +886,6 @@ public class Globals {
 
     }
 
-    /**
-     * Get class list
-     */
-
-    public ArrayList<SchoolClasses> getClasses(AppPreferences _appPrefsNew, int intSessionID, int intStuID, int intStaffID) {
-       /* _appPrefs = _appPrefsNew;
-        String MethodName = "getSchoolClasses";
-        SoapObject response = InvokeClassMethod(Globals.Data.URL, MethodName, intSessionID, intStuID, intStaffID);
-        return RetrieveClassFromSoap(response);
-        */
-        _appPrefs = _appPrefsNew;
-        HashMap<String, Object> params = new HashMap<String, Object>();
-        params.put("SessionID", String.valueOf(intSessionID));
-        params.put("StuID", String.valueOf(intStuID));
-        params.put("boolEnroll", String.valueOf(0));
-        params.put("StaffID", String.valueOf(intStaffID));
-        params.put("UserID", String.valueOf(_appPrefsNew.getUserID()));
-        params.put("UserGUID", _appPrefsNew.getUserGUID());
-        String url = this.URLBuilder("getSchoolClasses?", params);
-        String response = this.callJSON(url);
-        ArrayList<SchoolClasses> classArray = new ArrayList<SchoolClasses>();
-        try {
-
-            GsonBuilder gsonBuilder = new GsonBuilder();
-            gsonBuilder.setDateFormat("M/d/yy hh:mm a");
-            Gson gson = gsonBuilder.create();
-            //Sets what the the object will be deserialized too.
-            Type collectionType = new TypeToken<ArrayList<SchoolClasses>>() {
-            }.getType();
-            classArray = gson.fromJson(response, collectionType);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-
-        return classArray;
-
-    }
-
-    public SoapObject InvokeClassMethod(String URL, String MethodName, int intSessionID, int intStuID, int intStaffID) {
-
-        SoapObject request = GetClassSoapObject(MethodName);
-
-        User oUser = _appPrefs.getUser();
-
-        PropertyInfo piUserID = new PropertyInfo();
-        piUserID.setName("UserID");
-        piUserID.setValue(oUser.UserID);
-        request.addProperty(piUserID);
-
-        PropertyInfo piUserGUID = new PropertyInfo();
-        piUserGUID.setName("UserGUID");
-        piUserGUID.setValue(oUser.UserGUID);
-        request.addProperty(piUserGUID);
-
-        PropertyInfo piSessionID = new PropertyInfo();
-        piSessionID.setName("intSessionID");
-        piSessionID.setValue(intSessionID);
-        request.addProperty(piSessionID);
-
-        PropertyInfo piBoolEnroll = new PropertyInfo();
-        piBoolEnroll.setName("boolEnroll");
-        piBoolEnroll.setValue(true);
-        request.addProperty(piBoolEnroll);
-
-        PropertyInfo piStuID = new PropertyInfo();
-        piStuID.setName("intStuID");
-        piStuID.setValue(intStuID);
-        request.addProperty(piStuID);
-
-        PropertyInfo piStaffID = new PropertyInfo();
-        piStaffID.setName("intStaffID");
-        piStaffID.setValue(intStaffID);
-        request.addProperty(piStaffID);
-
-
-        SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(
-                SoapEnvelope.VER11);
-        envelope.dotNet = true;
-        envelope.setOutputSoapObject(request);
-        return MakeClassCall(URL, envelope, Globals.Data.NAMESPACE, MethodName);
-    }
 
     /**
      * Get Student Attendance
@@ -1241,106 +1094,40 @@ public class Globals {
     }
 
     /**
-     * Enroll Student in WaitList
+     * Place Student on WaitList
      */
 
     public Integer placeStudentOnWaitList(AppPreferences _appPrefsNew, SchoolClasses objSchoolClasses,
                                           Student objStudent) {
-        _appPrefs = _appPrefsNew;
-        String MethodName = "waitListStudent";
-        SoapPrimitive response = InvokeWaitListMethod(Globals.Data.URL, MethodName, objSchoolClasses, objStudent);
-        return RetrieveWaitListFromSoap(response);
-
-    }
-
-    public SoapPrimitive InvokeWaitListMethod(String URL, String MethodName, SchoolClasses objSchoolClasses,
-                                              Student objStudent) {
-
-        SoapObject requestWaitList = GetClassSoapObject(MethodName);
 
         SchoolClasses selectedSchoolClasses = objSchoolClasses;
         Student selectedStudent = objStudent;
-        User oUser = _appPrefs.getUser();
-        School oSchool = _appPrefs.getSchool();
+        User oUser = _appPrefsNew.getUser();
+        School oSchool = _appPrefsNew.getSchool();
 
 
-        PropertyInfo piStrAction = new PropertyInfo();
-        piStrAction.setName("strAction");
-        piStrAction.setValue("WaitlistClass");
-        requestWaitList.addProperty(piStrAction);
+        HashMap<String, Object> params = new HashMap<String, Object>();
+        params.put("strAction", "WaitListClass");
+        params.put("StuID", String.valueOf(selectedStudent.StuID));
+        params.put("SchID", String.valueOf(selectedStudent.SchID));
+        params.put("AcctID", String.valueOf(selectedStudent.AcctID));
+        params.put("CurrSessionID", String.valueOf(oSchool.SessionID));
+        params.put("ClassSessionID", String.valueOf(oSchool.SessionID));
+        params.put("ClID", String.valueOf(selectedSchoolClasses.ClID));
+        params.put("UserID", String.valueOf(oUser.UserID));
+        params.put("UserGUID", oUser.UserGUID);
+        params.put("FName", selectedStudent.FName);
+        params.put("LName", selectedStudent.LName);
+        params.put("AcctName", selectedStudent.AcctName);
+        params.put("Phone", selectedStudent.Phone);
+        params.put("Notes", selectedStudent.Notes);
 
-        PropertyInfo piClID = new PropertyInfo();
-        piClID.setName("intClID");
-        piClID.setValue(selectedSchoolClasses.ClID);
-        requestWaitList.addProperty(piClID);
+        String url = this.URLBuilder("waitListStudent?", params);
 
-        PropertyInfo piUserID = new PropertyInfo();
-        piUserID.setName("intUserID");
-        piUserID.setValue(oUser.UserID);
-        requestWaitList.addProperty(piUserID);
+        int response = Integer.valueOf(this.callJSON(url));
 
-        PropertyInfo piUserGUID = new PropertyInfo();
-        piUserGUID.setName("UserGUID");
-        piUserGUID.setValue(oUser.UserGUID);
-        requestWaitList.addProperty(piUserGUID);
+        return response;
 
-        PropertyInfo piSchID = new PropertyInfo();
-        piSchID.setName("intSchID");
-        piSchID.setValue(oSchool.SchID);
-        requestWaitList.addProperty(piSchID);
-
-        PropertyInfo piStuID = new PropertyInfo();
-        piStuID.setName("intStuID");
-        piStuID.setValue(selectedStudent.StuID);
-        requestWaitList.addProperty(piStuID);
-
-
-        PropertyInfo piAcctID = new PropertyInfo();
-        piAcctID.setName("intAcctID");
-        piAcctID.setValue(selectedStudent.AcctID);
-        requestWaitList.addProperty(piAcctID);
-
-        PropertyInfo piCurrentSessionID = new PropertyInfo();
-        piCurrentSessionID.setName("intCurrSessionID");
-        piCurrentSessionID.setValue(oSchool.SessionID);
-        requestWaitList.addProperty(piCurrentSessionID);
-
-        PropertyInfo piSelectedClassSessionID = new PropertyInfo();
-        piSelectedClassSessionID.setName("intClassSessionID");
-        piSelectedClassSessionID.setValue(oSchool.SessionID);
-        requestWaitList.addProperty(piSelectedClassSessionID);
-
-        PropertyInfo piFName = new PropertyInfo();
-        piFName.setName("FName");
-        piFName.setValue(selectedStudent.FName);
-        requestWaitList.addProperty(piFName);
-
-        PropertyInfo piLName = new PropertyInfo();
-        piLName.setName("LName");
-        piLName.setValue(selectedStudent.LName);
-        requestWaitList.addProperty(piLName);
-
-        PropertyInfo piAcctName = new PropertyInfo();
-        piAcctName.setName("strAcctName");
-        piAcctName.setValue(selectedStudent.AcctName);
-        requestWaitList.addProperty(piAcctName);
-
-        PropertyInfo piPhone = new PropertyInfo();
-        piPhone.setName("strPhone");
-        piPhone.setValue(selectedStudent.Phone);
-        requestWaitList.addProperty(piPhone);
-
-        PropertyInfo piNotes = new PropertyInfo();
-        piNotes.setName("strNotes");
-        piNotes.setValue(selectedStudent.Notes);
-        requestWaitList.addProperty(piNotes);
-
-        SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(
-                SoapEnvelope.VER11);
-        envelope.dotNet = true;
-        envelope.setOutputSoapObject(requestWaitList);
-
-        return MakeWaitListCall(URL, envelope, Globals.Data.NAMESPACE, MethodName);
     }
 
     public class Data {

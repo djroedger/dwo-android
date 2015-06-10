@@ -22,8 +22,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.squareup.timessquare.CalendarPickerView;
 
-import org.ksoap2.SoapEnvelope;
-import org.ksoap2.serialization.PropertyInfo;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapSerializationEnvelope;
 import org.ksoap2.transport.HttpTransportSE;
@@ -341,60 +339,6 @@ public class RecordAttendanceFragment extends Fragment {
         return studentAttendanceArray;
     }
 
-    /**
-     * No longer used!
-     */
-    public SoapObject InvokeCompleteAttendanceMethod(String URL, String MethodName) {
-
-        SoapObject request = GetSoapObject(MethodName);
-
-        User oUser = _appPrefs.getUser();
-        int selectedMonth = thisMonth.get(Calendar.MONTH);
-        int selectedYear = thisMonth.get(Calendar.YEAR);
-
-
-        PropertyInfo piUserID = new PropertyInfo();
-        piUserID.setName("UserID");
-        piUserID.setValue(oUser.UserID);
-        request.addProperty(piUserID);
-
-        PropertyInfo piUserGUID = new PropertyInfo();
-        piUserGUID.setName("UserGUID");
-        piUserGUID.setValue(oUser.UserGUID);
-        request.addProperty(piUserGUID);
-
-        PropertyInfo piMonth = new PropertyInfo();
-        piMonth.setName("intMonth");
-        piMonth.setValue(selectedMonth + 1);
-        request.addProperty(piMonth);
-
-        PropertyInfo piYear = new PropertyInfo();
-        piYear.setName("intYear");
-        piYear.setValue(selectedYear);
-        request.addProperty(piYear);
-
-        PropertyInfo piStuID = new PropertyInfo();
-        piStuID.setName("StuID");
-        piStuID.setValue(oStudent.StuID);
-        request.addProperty(piStuID);
-
-        PropertyInfo piSchID = new PropertyInfo();
-        piSchID.setName("intSchID");
-        piSchID.setValue(oStudent.SchID);
-        request.addProperty(piSchID);
-
-        PropertyInfo piAcctID = new PropertyInfo();
-        piAcctID.setName("intAcctID");
-        piAcctID.setValue(oStudent.AcctID);
-        request.addProperty(piAcctID);
-
-        SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(
-                SoapEnvelope.VER11);
-        envelope.dotNet = true;
-        envelope.setOutputSoapObject(request);
-        return MakeAttendanceCall(URL, envelope, Globals.Data.NAMESPACE, MethodName);
-    }
-
     public void drawCalendar(CalendarPickerView calendar, Calendar currentMonth, Calendar nextMonth) {
         calendar.init(currentMonth.getTime(), nextMonth.getTime()).inMode(CalendarPickerView.SelectionMode.MULTIPLE);
     }
@@ -449,7 +393,7 @@ public class RecordAttendanceFragment extends Fragment {
     }
 
     /**
-     * Get's the Student's attendance record
+     * Gets the Student's attendance record
      */
     public class getCompleteStudentAttendanceAsync extends
             AsyncTask<Globals.Data, Void, ArrayList<StudentAttendance>> {

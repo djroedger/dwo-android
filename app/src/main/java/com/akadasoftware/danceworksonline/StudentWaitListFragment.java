@@ -25,8 +25,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
-import org.ksoap2.SoapEnvelope;
-import org.ksoap2.serialization.PropertyInfo;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapSerializationEnvelope;
 import org.ksoap2.transport.HttpTransportSE;
@@ -218,47 +216,6 @@ public class StudentWaitListFragment extends ListFragment {
         studentWaitList.execute();
     }
 
-    public ArrayList<StudentWaitList> getWaitList() {
-        METHOD_NAME = "getStudentWaitList";
-        SOAP_ACTION = "StudentWaitList";
-        SoapObject response = InvokeMethod(Data.URL, METHOD_NAME);
-        return RetrieveWaitListFromSoap(response);
-
-    }
-
-    public SoapObject InvokeMethod(String URL, String MethodName) {
-
-        SoapObject request = Globals.GetSoapObject(Data.NAMESPACE, MethodName);
-
-        PropertyInfo piUserID = new PropertyInfo();
-        piUserID.setName("UserID");
-        piUserID.setValue(oUser.UserID);
-        request.addProperty(piUserID);
-
-        PropertyInfo piUserGUID = new PropertyInfo();
-        piUserGUID.setType("STRING_CLASS");
-        piUserGUID.setName("UserGUID");
-        piUserGUID.setValue(oUser.UserGUID);
-        request.addProperty(piUserGUID);
-
-
-        PropertyInfo piStuID = new PropertyInfo();
-        piStuID.setName("StuID");
-        piStuID.setValue(oStudent.StuID);
-        request.addProperty(piStuID);
-
-        PropertyInfo piSessionID = new PropertyInfo();
-        piSessionID.setName("SessionID");
-        piSessionID.setValue(SessionID);
-        request.addProperty(piSessionID);
-
-        envelope = new SoapSerializationEnvelope(
-                SoapEnvelope.VER11);
-        envelope.dotNet = true;
-        envelope.setOutputSoapObject(request);
-        return MakeCall(URL, envelope, Data.NAMESPACE, METHOD_NAME, SOAP_ACTION);
-    }
-
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -310,7 +267,7 @@ public class StudentWaitListFragment extends ListFragment {
             params.put("SessionID", String.valueOf(SessionID));
             params.put("UserID", String.valueOf(oUser.UserID));
             params.put("UserGUID", oUser.UserGUID);
-            String url = oGlobal.URLBuilder("getStuClasses?", params);
+            String url = oGlobal.URLBuilder("getStudentWaitList?", params);
             String response = oGlobal.callJSON(url);
             ArrayList<StudentWaitList> studentWaitListArray = new ArrayList<StudentWaitList>();
             try {
